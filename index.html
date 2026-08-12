@@ -570,9 +570,17 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   .app{max-width:none;margin:0;padding:0 24px}
   .lw-header{position:sticky;max-width:none;margin:0 0 24px;left:248px;right:0;width:auto;border-radius:var(--r4);background:color-mix(in srgb,var(--bg) 70%,transparent)}
   .panel{padding:0 4px 40px}
-  /* 底部 Tab Bar 变左侧 Sidebar */
-  .bnav{left:0;top:0;bottom:0;transform:none;width:248px;max-width:none;border-radius:0;border-top:none;border-right:1px solid var(--glass-bd);
-    flex-direction:column;justify-content:flex-start;gap:6px;padding:84px 16px 24px;box-shadow:4px 0 30px rgba(31,38,135,.10)}
+  /* 底部 Tab Bar → 左侧 Sidebar（必须覆盖移动端全部浮动属性） */
+  .bnav{
+    position:fixed;left:0;top:0;bottom:0;right:auto;      /* right:auto 覆盖移动端 right:16px */
+    transform:none;width:248px;max-width:none;margin:0;     /* 覆盖移动端 max-width:632px / margin:0 auto */
+    border-radius:0;border-top:none;border-right:1px solid var(--glass-bd);border-bottom:none;
+    flex-direction:column;justify-content:flex-start;gap:6px;padding:84px 16px 24px;
+    box-shadow:4px 0 30px rgba(31,38,135,.10);
+    background:var(--glass);                               /* 玻璃背景 */
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%)
+  }
   .bnav-inner{flex-direction:column;max-width:none;height:auto;gap:6px;align-items:stretch}
   .bn{flex-direction:row;justify-content:flex-start;align-items:center;gap:14px;padding:13px 16px;font-size:15px;min-height:50px;border-radius:14px;color:var(--t1)}
   .bn .bn-icon-box{height:auto;min-width:auto;padding:0;background:transparent;border-radius:12px}
