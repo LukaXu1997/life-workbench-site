@@ -2617,7 +2617,8 @@ async function sbListVersions(populate){
     const dir=slash>0?path.slice(0,slash+1):'';
     const prefix=dir+'history/';
     console.log("history prefix:", prefix);
-    const lr=await fetch(base+'/storage/v1/object/list/'+encodeURIComponent(bucket),{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify({prefix:prefix,limit:1000})});
+    // 不再长期固定 limit:1000：按当前分页窗口动态取（至少 100，并随“查看更多”增大），避免一次拉取过多
+    const lr=await fetch(base+'/storage/v1/object/list/'+encodeURIComponent(bucket),{method:'POST',headers:sbHeaders({'Content-Type':'application/json'}),body:JSON.stringify({prefix:prefix,limit:Math.max(sbListLimit,100)})});
     if(!lr.ok){const b=await lr.text().catch(()=> '');throw new Error('HTTP '+lr.status+' '+(b||'').slice(0,160));}
     let arr=await lr.json();
     if(!Array.isArray(arr))return [];
@@ -2629,6 +2630,8 @@ async function sbListVersions(populate){
     });
     // 按真实时间戳（created_at 优先，否则文件名）倒序，保证分组正确
     arr.sort((a,b)=>histItemTime(b)-histItemTime(a));
+    // 客户端分页：只展示前 sbListLimit 个；UI / Timeline / Select 一律使用 visible
+    const visible = arr.slice(0, sbListLimit);
     if(populate){
       const sel=document.getElementById('sbVersionSel');
       if(sel){
@@ -2638,7 +2641,7 @@ async function sbListVersions(populate){
         const dk=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
         const hhmm=ts=>{const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
         const groups={today:[],yesterday:[],earlier:[]};
-        arr.forEach(o=>{const ts=histItemTime(o);const k=dk(ts);if(k===todayKey)groups.today.push(o);else if(k===yestKey)groups.yesterday.push(o);else groups.earlier.push(o);});
+        visible.forEach(o=>{const ts=histItemTime(o);const k=dk(ts);if(k===todayKey)groups.today.push(o);else if(k===yestKey)groups.yesterday.push(o);else groups.earlier.push(o);});
         const fillGroup=(label,items)=>{
           if(!items.length)return '';
           const opts=items.map(o=>{
@@ -2651,9 +2654,9 @@ async function sbListVersions(populate){
         };
         const groupsHTML=fillGroup('今天',groups.today)+fillGroup('昨天',groups.yesterday)+fillGroup('更早',groups.earlier);
         if(groupsHTML)sel.insertAdjacentHTML('beforeend',groupsHTML);
-        renderSbTimeline(arr);
-        toastMsg('已刷新版本列表（显示 '+arr.length+(arr.length>=sbListLimit?'+':'')+' 个历史版本）');
-        const lm=document.getElementById('sbLoadMore');if(lm)lm.style.display=arr.length>=sbListLimit?'inline-flex':'none';
+        renderSbTimeline(visible);
+        toastMsg('已刷新版本列表（显示 '+visible.length+(arr.length>sbListLimit?'+':'')+' 个历史版本）');
+        const lm=document.getElementById('sbLoadMore');if(lm)lm.style.display=arr.length>sbListLimit?'inline-flex':'none';
       }
     }
     return arr;
