@@ -136,12 +136,14 @@ a{color:inherit;text-decoration:none}
 .cat-dot.expense{background:var(--erl);color:var(--er)}
 .cat-dot.income{background:var(--grl);color:var(--gr)}
 .cat-dot.repayment{background:var(--bll);color:var(--bl)}
+.cat-dot.transfer{background:var(--bll);color:var(--bl)}
 .txn-i .name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .txn-i .meta{font-size:12px;color:var(--t3)}
 .txn-a{font-weight:600;font-size:15px;flex-shrink:0}
 .txn-a.expense{color:var(--er)}
 .txn-a.income{color:var(--gr)}
 .txn-a.repayment{color:var(--bl)}
+.txn-a.transfer{color:var(--bl)}
 .txn.repayment{background:var(--bll)}
 .empty{text-align:center;color:var(--t3);font-size:13px;padding:26px 0}
 .chart-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center}
@@ -976,6 +978,14 @@ function migrateCardRepays(){
     LS(KEYS.txns,txns);LS(KEYS.cardRepays,[]);
   }
 }
+// TnG top-up (Reload) is moving your own money into the wallet, not income. Reclassify any
+// previously-imported Reload rows that were stored as 'income' into the neutral 'transfer' type.
+function migrateTngReloads(){
+  const txns=LS(KEYS.txns)||[];
+  let n=0;
+  for(const t of txns){if(t.source==='tng-import'&&t.type==='income'&&/reload/i.test(t.note||'')){t.type='transfer';n++;}}
+  if(n)LS(KEYS.txns,txns);
+}
 // 当前应还周期快照：周期内信用卡消费 - 已还
 function cardCycle(){
   const txns=LS(KEYS.txns)||[];
@@ -1330,7 +1340,7 @@ function renderIndex(){
   const weekDay=now.getDay();
   const weekPct=Math.round((weekDay===0?7:weekDay)/7*100);
   let todayExpenseCNY=0,todayExpenseMYR=0,todayIncomeCNY=0,todayIncomeMYR=0;
-  txns.forEach(t=>{if(t.date===today){const c=t.currency||'CNY';if(t.type==='expense'){if(c==='MYR')todayExpenseMYR+=t.amount;else todayExpenseCNY+=t.amount}else{if(c==='MYR')todayIncomeMYR+=t.amount;else todayIncomeCNY+=t.amount}}});
+  txns.forEach(t=>{if(t.date===today){const c=t.currency||'CNY';if(t.type==='expense'){if(c==='MYR')todayExpenseMYR+=t.amount;else todayExpenseCNY+=t.amount}else if(t.type==='income'){if(c==='MYR')todayIncomeMYR+=t.amount;else todayIncomeCNY+=t.amount}}});
   let habitsDone=0;habits.forEach(h=>{const rec=h.records&&h.records[today];if(h.type==='check'?!!rec : (h.type==='count'?rec>=h.target : !!rec))habitsDone++});
   const budgetCNY=budgets.find(b=>b.yearMonth===ym&&b.currency==='CNY');
   const budgetMYR=budgets.find(b=>b.yearMonth===ym&&b.currency==='MYR');
@@ -1515,7 +1525,7 @@ function renderFinance(){
     }
     const c=t.currency||'CNY',first=t.category.charAt(0);
     const origInfo=(t.paymentMethod==='card'&&t.originalCurrency&&t.originalCurrency!==c)?'<div style="font-size:11px;color:var(--t3);margin-top:2px">原 '+curLabel(t.originalCurrency)+fmt(t.originalAmount)+'</div>':'';
-    return '<div class="txn"><div class="txn-l"><div class="cat-dot '+t.type+'">'+esc(first)+'</div><div class="txn-i"><div class="name">'+esc(t.category)+payTag(t.paymentMethod)+(t.note?' · '+esc(t.note):'')+'</div><div class="meta">'+dateLabel(t.date)+(c==='MYR'?' · RM':'')+'</div></div></div><div class="row-gap6" style="flex-direction:column;align-items:flex-end"><span class="txn-a '+t.type+'">'+(t.type==='expense'?'-':'+')+fmtY(t.amount,c)+'</span>'+origInfo+'<button class="bd2" onclick="deleteTxn(\''+t.id+'\')">删除</button></div></div>';
+    return '<div class="txn"><div class="txn-l"><div class="cat-dot '+t.type+'">'+esc(first)+'</div><div class="txn-i"><div class="name">'+esc(t.category)+payTag(t.paymentMethod)+(t.note?' · '+esc(t.note):'')+'</div><div class="meta">'+dateLabel(t.date)+(c==='MYR'?' · RM':'')+'</div></div></div><div class="row-gap6" style="flex-direction:column;align-items:flex-end"><span class="txn-a '+t.type+'">'+(t.type==='expense'?'-':(t.type==='transfer'?'↔':'+'))+fmtY(t.amount,c)+'</span>'+origInfo+'<button class="bd2" onclick="deleteTxn(\''+t.id+'\')">删除</button></div></div>';
   }).join('')}
   renderPieChart(ym);
   renderBudgetBar(ym,totalExpenseCNY,totalExpenseMYR);
@@ -1700,7 +1710,7 @@ function changeMonth(d){
 function exportCSV(){
   const txns=LS(KEYS.txns)||[];
   if(txns.length===0){toastMsg('无数据可导出','error');return}
-  const csv='类型,币种,金额,分类,备注,日期\n'+txns.map(t=>(t.type==='expense'?'支出':(t.type==='income'?'收入':'还款'))+','+(t.currency||'CNY')+','+t.amount+','+t.category+','+(t.note||'').replace(/,/g,'，')+','+t.date).join('\n');
+  const csv='类型,币种,金额,分类,备注,日期\n'+txns.map(t=>(t.type==='expense'?'支出':(t.type==='income'?'收入':(t.type==='transfer'?'转账':'还款')))+','+(t.currency||'CNY')+','+t.amount+','+t.category+','+(t.note||'').replace(/,/g,'，')+','+t.date).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='记账数据_'+tdy()+'.csv';a.click();
   toastMsg('CSV 已导出');
@@ -2429,7 +2439,6 @@ function loadPdfJs(){
 }
 const TNG_TYPE_ALT='PayDirect Payment|DuitNow QR TNGD|DuitNow QR|Receive from Wallet|Transfer to Wallet|Payment|Reload|Cashback';
 const TNG_TYPE_RE=new RegExp('('+TNG_TYPE_ALT+')','i');
-const INCOME_RE=/reload|receive|cashback|transfer/i;
 function _tngToISO(s){const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return '';return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');}
 function _tngCleanMerchant(s){s=String(s||'').replace(/\s+/g,' ').trim();s=s.replace(/^\s*\d{11}\s*/,'');s=s.replace(/\d{18,}/g,'');s=s.replace(/[A-Za-z0-9+/=]{24,}/g,'');return s.replace(/\s+/g,' ').trim();}
 // TnG statements lay transactions out as vertical columns: each txn occupies a fixed x,
@@ -2449,8 +2458,11 @@ function parseTngPage(items){
     const amount=amtIt?parseFloat(amtIt.str.replace(/[^\d.]/g,'')):null;
     const typeText=typeIt?typeIt.str:'';
     const rawType=(typeText.match(TNG_TYPE_RE)||[''])[0].trim();
-    const expense=!INCOME_RE.test(typeText);
-    if(amount!=null&&merchant)out.push({date:_tngToISO(d.str),rawType,merchant,amount,currency:'MYR',expense});
+    // Reload = top-up from your own bank card into TnG, NOT real income (it's a transfer
+    // between your own accounts). Keep it out of income/expense totals.
+    const transfer=/^reload/i.test(typeText);
+    const expense=!/receive|cashback/i.test(typeText)&&!transfer;
+    if(amount!=null&&merchant)out.push({date:_tngToISO(d.str),rawType,merchant,amount,currency:'MYR',expense,transfer});
   }
   return out;
 }
@@ -2486,7 +2498,7 @@ function renderTngPreview(rows){
   const box=document.getElementById('tngPreview');
   if(!rows.length){box.innerHTML='<div style="color:var(--t2);padding:8px 0">未解析到交易，请检查文件/密码。</div>';document.getElementById('tngImportBtn').style.display='none';return;}
   let h='<table class="imp-tbl"><thead><tr><th>日期</th><th>商家/说明</th><th>类型</th><th>金额(RM)</th></tr></thead><tbody>';
-  for(const r of rows){h+='<tr><td>'+esc(r.date)+'</td><td>'+esc(r.merchant)+'</td><td>'+esc(r.rawType||'')+'</td><td class="'+(r.expense?'expense':'income')+'">'+(r.expense?'-':'+')+fmtY(r.amount,'MYR')+'</td></tr>';}
+  for(const r of rows){const sign=r.transfer?'↔':(r.expense?'-':'+');const cls=r.transfer?'transfer':(r.expense?'expense':'income');h+='<tr><td>'+esc(r.date)+'</td><td>'+esc(r.merchant)+'</td><td>'+esc(r.rawType||'')+'</td><td class="'+cls+'">'+sign+fmtY(r.amount,'MYR')+'</td></tr>';}
   h+='</tbody></table>';
   box.innerHTML=h;
   const b=document.getElementById('tngImportBtn');b.style.display='inline-block';b.textContent='导入 '+rows.length+' 笔';
@@ -2501,7 +2513,7 @@ function doImportTngTxns(){
   for(const r of _tngParsed){
     const key=r.date+'|'+r.merchant+'|'+r.amount;
     if(seen.has(key))continue;seen.add(key);
-    txns.push({id:uid('t'),type:r.expense?'expense':'income',currency:'MYR',amount:r.amount,category:'TnG',note:r.merchant+(r.rawType?(' · '+r.rawType):''),date:r.date,createdAt:Date.now(),paymentMethod:'TnG',source:'tng-import'});
+    txns.push({id:uid('t'),type:r.transfer?'transfer':(r.expense?'expense':'income'),currency:'MYR',amount:r.amount,category:'TnG',note:r.merchant+(r.rawType?(' · '+r.rawType):''),date:r.date,createdAt:Date.now(),paymentMethod:'TnG',source:'tng-import'});
     n++;
   }
   LS(KEYS.txns,txns);
@@ -2879,7 +2891,7 @@ function globalSearch(q){
   if(!q)return [];
   const out=[];
   const push=(type,tab,id,title,snippet,icon)=>{if((title+' '+(snippet||'')).toLowerCase().includes(q))out.push({type,tab,id,title:(title||snippet||'(无标题)').slice(0,60),snippet:(snippet||'').slice(0,80),icon});};
-  (LS(KEYS.txns)||[]).forEach(t=>push('txn','finance',t.id,(t.category||'')+' '+(t.note||''),(t.type==='income'?'收入':'支出')+' '+fmtY(t.amount,t.currency||'CNY'),'📅'));
+  (LS(KEYS.txns)||[]).forEach(t=>push('txn','finance',t.id,(t.category||'')+' '+(t.note||''),(t.type==='income'?'收入':(t.type==='transfer'?'转账':'支出'))+' '+fmtY(t.amount,t.currency||'CNY'),'📅'));
   (LS(KEYS.habits)||[]).forEach(h=>push('habit','habits',h.id,h.name,'习惯打卡','✅'));
   (LS(KEYS.schedule)||[]).forEach(s=>push('event','schedule',s.id,s.title,(s.note||'')+' '+(s.category||''),'📌'));
   (LS(KEYS.shopping)||[]).forEach(p=>push('shop','shopping',p.id,p.name,p.note||'','🛒'));
@@ -3454,6 +3466,7 @@ function init(){
   // Process any due recurring transactions first
   processRecurring();
   migrateCardRepays(); // 旧版独立还款记录并入流水
+  migrateTngReloads(); // Reload 由"收入"改判为"转账"
   initTheme();
   initSwipeNav();
   // Update theme button label + theme mode picker
