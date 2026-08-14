@@ -601,6 +601,12 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   .sum-card:hover,.lw-card:hover,.cloud-card:hover{transform:none}
   *{transition-duration:.01ms!important}
 }
+.imp-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.imp-tbl th,.imp-tbl td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}
+.imp-tbl th{color:var(--t2);font-weight:600}
+.imp-tbl .expense{color:#e5484d;font-weight:600}
+.imp-tbl .income{color:#30a46c;font-weight:600}
+#importTngPwdRow{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 <script>// Early theme bootstrap — runs synchronously in <head> to prevent FOUC
 try{
@@ -687,6 +693,7 @@ try{
     <select id="filterCategory" onchange="filterCat=this.value;renderFinance()" style="flex:1;max-width:130px"></select>
     <select id="filterCurrencySelect" onchange="filterCurrency=this.value;renderFinance()" style="max-width:80px"><option value="all">全部币种</option><option value="CNY">¥ CNY</option><option value="MYR">RM MYR</option></select>
     <button class="bo bs" onclick="exportCSV()">导出CSV</button>
+    <button class="bo bs" onclick="openTngImport()">导入TnG</button>
   </div>
   <div id="txnList"></div>
   <div class="card"><div class="section-title">消费结构</div><div class="chart-wrap"><svg id="pieChart" viewBox="0 0 180 180" style="width:150px;height:150px;flex-shrink:0"></svg><ul class="legend" id="pieLegend"></ul></div></div>
@@ -848,6 +855,8 @@ try{
 <div class="mo hidden" id="inboxModal"><div class="mb" style="max-width:560px"><h4>速记（Inbox）</h4><div id="inboxList" class="mt10" style="max-height:60vh;overflow:auto"></div><div class="br"><button class="bo bs" onclick="closeInbox()">关闭</button></div></div></div>
 <!-- Organize (归位) Modal -->
 <div class="mo hidden" id="organizeModal"><div class="mb" style="max-width:560px"><h4>整理速记</h4><p style="font-size:12px;color:var(--t2);margin-bottom:10px">将这条速记归位到对应分类，原文将作为标题/备注带入。</p><div id="orgPreview" class="ov-preview"></div><div class="org-chips mt10"><button class="org-chip on" data-t="txn" onclick="setOrgType('txn')">📅 账单</button><button class="org-chip" data-t="habit" onclick="setOrgType('habit')">✅ 习惯</button><button class="org-chip" data-t="event" onclick="setOrgType('event')">📌 待办</button><button class="org-chip" data-t="shop" onclick="setOrgType('shop')">🛒 购物</button></div><div id="orgFields" class="mt10"></div><div class="br"><button class="bo bs" onclick="closeOrganize()">取消</button><button class="bp" onclick="confirmOrganize()">保存并归位</button></div></div></div>
+<!-- TnG 账单 PDF 导入 Modal -->
+<div class="mo hidden" id="tngImportModal"><div class="mb" style="max-width:680px"><h4>导入 TnG 账单（PDF）</h4><p style="color:var(--t2);font-size:13px;margin-bottom:10px">选择 TnG 导出的交易历史 PDF，输入解压密码（手机号去前导 0），自动解析为账单。</p><div class="mt10"><input type="file" id="tngFile" accept="application/pdf" class="bo" style="width:100%"></div><div class="mt10" id="importTngPwdRow"><input type="password" id="tngPwd" placeholder="PDF 解压密码（手机号去前导0，如 173158940）" class="bo" style="flex:1;min-width:200px"></div><div class="mt10"><button class="bo bs" onclick="runTngImport()">解析</button><span id="tngStatus" style="margin-left:8px;color:var(--t2);font-size:13px"></span></div><div id="tngPreview" class="mt10" style="max-height:50vh;overflow:auto"></div><div class="br mt10"><button class="bo bs" id="tngImportBtn" onclick="doImportTngTxns()" style="display:none">导入</button><button class="bd2" onclick="closeTngImport()">取消</button></div></div></div>
 
 <!-- Quick Action Bottom Sheet (＋) -->
 <div class="lw-sheet-backdrop" id="quickSheetBackdrop" onclick="closeQuickSheet()"></div>
@@ -2401,6 +2410,133 @@ function saveCardConfig(){
   if(currentTab==='index')renderIndex();
   renderFinance();
 }
+/* ===== TnG 账单 PDF 一键导入（pdf.js + 文本解析） ===== */
+let _tngPwd='';
+let _tngParsed=[];
+let _pdfjsLoading=null;
+function loadPdfJs(){
+  if(window.pdfjsLib&&window.pdfjsLib.getDocument)return Promise.resolve(window.pdfjsLib);
+  if(_pdfjsLoading)return _pdfjsLoading;
+  _pdfjsLoading=new Promise((res,rej)=>{
+    const v='3.11.174';
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+v+'/pdf.min.js';
+    s.onload=()=>{try{window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/'+v+'/pdf.worker.min.js';}catch(e){}res(window.pdfjsLib);};
+    s.onerror=()=>rej(new Error('pdf.js 加载失败（首次需联网）'));
+    document.head.appendChild(s);
+  });
+  return _pdfjsLoading;
+}
+async function pdfToLayoutText(buf){
+  const pdfjs=await loadPdfJs();
+  const pdf=await pdfjs.getDocument({data:buf,password:_tngPwd||''}).promise;
+  const lines=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const tc=await page.getTextContent();
+    const rows=new Map();
+    for(const it of tc.items){if(it.str==null)continue;const y=Math.round(it.transform[5]);if(!rows.has(y))rows.set(y,[]);rows.get(y).push(it);}
+    const ys=[...rows.keys()].sort((a,b)=>b-a);
+    for(const y of ys){
+      const items=rows.get(y).sort((a,b)=>a.transform[4]-b.transform[4]);
+      let line='',lastX=null;
+      for(const it of items){const x=it.transform[4];if(lastX!==null){const gap=x-(lastX+(it.width||0));if(gap>3)line+='  ';}line+=it.str;lastX=x;}
+      lines.push(line);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+const TNG_TYPE_ALT='PayDirect Payment|DuitNow QR TNGD|DuitNow QR|Receive from Wallet|Transfer to Wallet|Payment|Reload|Cashback';
+const TNG_TYPE_RE=new RegExp('('+TNG_TYPE_ALT+')','i');
+const TNG_SKIP_RE=/system generated|tngd\.my|thank you|operating hours|careline/i;
+function _tngIsB64(s){return s.length>=24&&/^[A-Za-z0-9+/=]+$/.test(s);}
+function _tngExtractTxn(line,iso){
+  const am=line.match(/RM\s?([\d,]+\.?\d*)/);
+  const amount=am?parseFloat(am[1].replace(/,/g,'')):null;
+  const tm=line.match(TNG_TYPE_RE);
+  const rawType=tm?tm[0]:'';
+  let body=tm?line.slice(tm.index+tm[0].length):line;
+  body=body.replace(/^\s*\d{11}\s*/,'');
+  const cut=body.search(/\d{18,}|[A-Za-z0-9+/=]{24,}|RM\s?[\d.,]+/);
+  if(cut>=0)body=body.slice(0,cut);
+  const merchant=body.trim();
+  return {date:iso,rawType:rawType.trim(),merchant,amount,currency:'MYR',expense:!/reload|transfer|receive|cashback/i.test(rawType)};
+}
+function parseTngStatementText(text){
+  const lines=String(text||'').split(/\n/);
+  const out=[];let cur=null;let lastDate='';
+  const norm=s=>String(s==null?'':s).replace(/\s+/g,' ').trim();
+  const close=()=>{if(cur){out.push(cur);cur=null;}};
+  for(const raw of lines){
+    const line=norm(raw);
+    if(!line)continue;
+    if(TNG_SKIP_RE.test(line))continue;
+    const dm=line.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    const tm=line.match(TNG_TYPE_RE);
+    if(dm||tm){
+      const iso=dm?`${dm[3]}-${String(dm[2]).padStart(2,'0')}-${String(dm[1]).padStart(2,'0')}`:lastDate;
+      if(dm)lastDate=iso;
+      close();
+      cur=_tngExtractTxn(line,iso);
+    }else if(cur){
+      const t=line.trim();
+      if(/^[\d\s]+$/.test(t))continue;
+      if(_tngIsB64(t))continue;
+      if(TNG_SKIP_RE.test(t))continue;
+      const s=t.replace(/^(10000010000|TNGOW3MY1|21700010100)\s+/g,'');
+      const frag=s.split(/\s+/).filter(Boolean).filter(tk=>/^[A-Za-z][A-Za-z .,&'()\-\/]*$/.test(tk)).join(' ');
+      if(frag)cur.merchant=(cur.merchant?cur.merchant+' ':'')+frag;
+    }
+  }
+  close();
+  return out.filter(t=>t.amount!=null&&t.merchant);
+}
+function openTngImport(){document.getElementById('tngImportModal').classList.remove('hidden');document.getElementById('tngPreview').innerHTML='';document.getElementById('tngImportBtn').style.display='none';document.getElementById('tngStatus').textContent='';}
+function closeTngImport(){document.getElementById('tngImportModal').classList.add('hidden');}
+async function runTngImport(){
+  const file=document.getElementById('tngFile').files[0];
+  const pwd=document.getElementById('tngPwd').value;_tngPwd=pwd;
+  if(!file){toastMsg('请先选择 PDF 文件','error');return;}
+  const st=document.getElementById('tngStatus');st.textContent='解析中…';
+  try{
+    const buf=await file.arrayBuffer();
+    const txt=await pdfToLayoutText(buf);
+    const rows=parseTngStatementText(txt);
+    _tngParsed=rows;renderTngPreview(rows);
+    st.textContent='解析出 '+rows.length+' 笔';
+  }catch(e){
+    console.error(e);
+    let msg=e&&e.message?e.message:String(e);
+    if(/password/i.test(msg))msg='密码错误或未填写，请检查（手机号去前导0）';
+    if(/pdf\.js/.test(msg))msg='pdf.js 首次加载需联网，请联网后重试';
+    st.textContent='解析失败：'+msg;toastMsg('解析失败：'+msg,'error');
+  }
+}
+function renderTngPreview(rows){
+  const box=document.getElementById('tngPreview');
+  if(!rows.length){box.innerHTML='<div style="color:var(--t2);padding:8px 0">未解析到交易，请检查文件/密码。</div>';document.getElementById('tngImportBtn').style.display='none';return;}
+  let h='<table class="imp-tbl"><thead><tr><th>日期</th><th>商家/说明</th><th>类型</th><th>金额(RM)</th></tr></thead><tbody>';
+  for(const r of rows){h+='<tr><td>'+esc(r.date)+'</td><td>'+esc(r.merchant)+'</td><td>'+esc(r.rawType||'')+'</td><td class="'+(r.expense?'expense':'income')+'">'+(r.expense?'-':'+')+fmtY(r.amount,'MYR')+'</td></tr>';}
+  h+='</tbody></table>';
+  box.innerHTML=h;
+  const b=document.getElementById('tngImportBtn');b.style.display='inline-block';b.textContent='导入 '+rows.length+' 笔';
+}
+function doImportTngTxns(){
+  if(!_tngParsed.length)return;
+  const txns=LS(KEYS.txns)||[];
+  const seen=new Set();let n=0;
+  for(const r of _tngParsed){
+    const key=r.date+'|'+r.merchant+'|'+r.amount;
+    if(seen.has(key))continue;seen.add(key);
+    txns.push({id:uid('t'),type:r.expense?'expense':'income',currency:'MYR',amount:r.amount,category:'TnG',note:r.merchant+(r.rawType?(' · '+r.rawType):''),date:r.date,createdAt:Date.now(),paymentMethod:'TnG',source:'tng-import'});
+    n++;
+  }
+  LS(KEYS.txns,txns);
+  toastMsg('已导入 '+n+' 笔 TnG 交易（重复已去重）');
+  closeTngImport();renderFinance();
+}
+
 function exportAllJSON(){
   triggerBackupDownload('生活工作台_备份_'+tdy()+'.json',false);
 }
