@@ -2427,70 +2427,32 @@ function loadPdfJs(){
   });
   return _pdfjsLoading;
 }
-async function pdfToLayoutText(buf){
-  const pdfjs=await loadPdfJs();
-  const pdf=await pdfjs.getDocument({data:buf,password:_tngPwd||''}).promise;
-  const lines=[];
-  for(let p=1;p<=pdf.numPages;p++){
-    const page=await pdf.getPage(p);
-    const tc=await page.getTextContent();
-    const rows=new Map();
-    for(const it of tc.items){if(it.str==null)continue;const y=Math.round(it.transform[5]);if(!rows.has(y))rows.set(y,[]);rows.get(y).push(it);}
-    const ys=[...rows.keys()].sort((a,b)=>b-a);
-    for(const y of ys){
-      const items=rows.get(y).sort((a,b)=>a.transform[4]-b.transform[4]);
-      let line='',lastX=null;
-      for(const it of items){const x=it.transform[4];if(lastX!==null){const gap=x-(lastX+(it.width||0));if(gap>3)line+='  ';}line+=it.str;lastX=x;}
-      lines.push(line);
-    }
-    lines.push('');
-  }
-  return lines.join('\n');
-}
 const TNG_TYPE_ALT='PayDirect Payment|DuitNow QR TNGD|DuitNow QR|Receive from Wallet|Transfer to Wallet|Payment|Reload|Cashback';
 const TNG_TYPE_RE=new RegExp('('+TNG_TYPE_ALT+')','i');
-const TNG_SKIP_RE=/system generated|tngd\.my|thank you|operating hours|careline/i;
-function _tngIsB64(s){return s.length>=24&&/^[A-Za-z0-9+/=]+$/.test(s);}
-function _tngExtractTxn(line,iso){
-  const am=line.match(/RM\s?([\d,]+\.?\d*)/);
-  const amount=am?parseFloat(am[1].replace(/,/g,'')):null;
-  const tm=line.match(TNG_TYPE_RE);
-  const rawType=tm?tm[0]:'';
-  let body=tm?line.slice(tm.index+tm[0].length):line;
-  body=body.replace(/^\s*\d{11}\s*/,'');
-  const cut=body.search(/\d{18,}|[A-Za-z0-9+/=]{24,}|RM\s?[\d.,]+/);
-  if(cut>=0)body=body.slice(0,cut);
-  const merchant=body.trim();
-  return {date:iso,rawType:rawType.trim(),merchant,amount,currency:'MYR',expense:!/reload|transfer|receive|cashback/i.test(rawType)};
-}
-function parseTngStatementText(text){
-  const lines=String(text||'').split(/\n/);
-  const out=[];let cur=null;let lastDate='';
-  const norm=s=>String(s==null?'':s).replace(/\s+/g,' ').trim();
-  const close=()=>{if(cur){out.push(cur);cur=null;}};
-  for(const raw of lines){
-    const line=norm(raw);
-    if(!line)continue;
-    if(TNG_SKIP_RE.test(line))continue;
-    const dm=line.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    const tm=line.match(TNG_TYPE_RE);
-    if(dm||tm){
-      const iso=dm?`${dm[3]}-${String(dm[2]).padStart(2,'0')}-${String(dm[1]).padStart(2,'0')}`:lastDate;
-      if(dm)lastDate=iso;
-      close();
-      cur=_tngExtractTxn(line,iso);
-    }else if(cur){
-      const t=line.trim();
-      if(/^[\d\s]+$/.test(t))continue;
-      if(_tngIsB64(t))continue;
-      if(TNG_SKIP_RE.test(t))continue;
-      const s=t.replace(/^(10000010000|TNGOW3MY1|21700010100)\s+/g,'');
-      const frag=s.split(/\s+/).filter(Boolean).filter(tk=>/^[A-Za-z][A-Za-z .,&'()\-\/]*$/.test(tk)).join(' ');
-      if(frag)cur.merchant=(cur.merchant?cur.merchant+' ':'')+frag;
-    }
+const INCOME_RE=/reload|receive|cashback|transfer/i;
+function _tngToISO(s){const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return '';return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');}
+function _tngCleanMerchant(s){s=String(s||'').replace(/\s+/g,' ').trim();s=s.replace(/^\s*\d{11}\s*/,'');s=s.replace(/\d{18,}/g,'');s=s.replace(/[A-Za-z0-9+/=]{24,}/g,'');return s.replace(/\s+/g,' ').trim();}
+// TnG statements lay transactions out as vertical columns: each txn occupies a fixed x,
+// with fields at fixed y levels (Date y~20, Type y~140, Merchant y~295, Amount y~676;
+// Wallet Balance y~776 is ignored). Grouping by y (old approach) collapsed several
+// columns onto one line, so we anchor on the Date item and read fields within its column.
+function parseTngPage(items){
+  const dates=items.filter(it=>/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(it.str)).sort((a,b)=>a.x-b.x);
+  const out=[];
+  for(let i=0;i<dates.length;i++){
+    const d=dates[i], x0=d.x, x1=(i+1<dates.length?dates[i+1].x-1:x0+240);
+    const inBand=it=>it.x>=x0&&it.x<=x1, near=(it,lo,hi)=>it.y>=lo&&it.y<=hi;
+    const typeIt=items.find(it=>inBand(it)&&near(it,128,152));
+    const merchItems=items.filter(it=>inBand(it)&&near(it,278,322)).sort((a,b)=>a.x-b.x);
+    const merchant=_tngCleanMerchant(merchItems.map(it=>it.str).join(' '));
+    const amtIt=items.find(it=>inBand(it)&&near(it,655,705)&&/RM/i.test(it.str));
+    const amount=amtIt?parseFloat(amtIt.str.replace(/[^\d.]/g,'')):null;
+    const typeText=typeIt?typeIt.str:'';
+    const rawType=(typeText.match(TNG_TYPE_RE)||[''])[0].trim();
+    const expense=!INCOME_RE.test(typeText);
+    if(amount!=null&&merchant)out.push({date:_tngToISO(d.str),rawType,merchant,amount,currency:'MYR',expense});
   }
-  close();
-  return out.filter(t=>t.amount!=null&&t.merchant);
+  return out;
 }
 function openTngImport(){document.getElementById('tngImportModal').classList.remove('hidden');document.getElementById('tngPreview').innerHTML='';document.getElementById('tngImportBtn').style.display='none';document.getElementById('tngStatus').textContent='';}
 function closeTngImport(){document.getElementById('tngImportModal').classList.add('hidden');}
@@ -2501,8 +2463,15 @@ async function runTngImport(){
   const st=document.getElementById('tngStatus');st.textContent='解析中…';
   try{
     const buf=await file.arrayBuffer();
-    const txt=await pdfToLayoutText(buf);
-    const rows=parseTngStatementText(txt);
+    const pdfjs=await loadPdfJs();
+    const pdf=await pdfjs.getDocument({data:buf,password:_tngPwd||''}).promise;
+    const rows=[];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      const items=tc.items.filter(it=>it.str!=null).map(it=>({x:Math.round(it.transform[4]),y:Math.round(it.transform[5]),str:it.str}));
+      rows.push.apply(rows,parseTngPage(items));
+    }
     _tngParsed=rows;renderTngPreview(rows);
     st.textContent='解析出 '+rows.length+' 笔';
   }catch(e){
@@ -2525,7 +2494,10 @@ function renderTngPreview(rows){
 function doImportTngTxns(){
   if(!_tngParsed.length)return;
   const txns=LS(KEYS.txns)||[];
-  const seen=new Set();let n=0;
+  // dedup against already-imported TnG rows (idempotent re-import), but keep genuinely
+  // separate repeated payments (same merchant+amount on a different date) intact.
+  const seen=new Set(txns.filter(t=>t.source==='tng-import').map(t=>t.date+'|'+t.merchant+'|'+t.amount));
+  let n=0;
   for(const r of _tngParsed){
     const key=r.date+'|'+r.merchant+'|'+r.amount;
     if(seen.has(key))continue;seen.add(key);
@@ -2533,7 +2505,7 @@ function doImportTngTxns(){
     n++;
   }
   LS(KEYS.txns,txns);
-  toastMsg('已导入 '+n+' 笔 TnG 交易（重复已去重）');
+  toastMsg('已导入 '+n+' 笔 TnG 交易（已存在于本机的自动跳过）');
   closeTngImport();renderFinance();
 }
 
