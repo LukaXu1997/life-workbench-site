@@ -978,12 +978,17 @@ function migrateCardRepays(){
     LS(KEYS.txns,txns);LS(KEYS.cardRepays,[]);
   }
 }
-// TnG top-up (Reload) is moving your own money into the wallet, not income. Reclassify any
-// previously-imported Reload rows that were stored as 'income' into the neutral 'transfer' type.
+// TnG top-up (Reload) and "Transfer to Wallet" are moving your own money between your own
+// accounts, NOT income/expense. Reclassify any previously-imported rows that were stored as
+// 'income' (Reload) or 'expense' (Transfer to Wallet) into the neutral 'transfer' type.
 function migrateTngReloads(){
   const txns=LS(KEYS.txns)||[];
   let n=0;
-  for(const t of txns){if(t.source==='tng-import'&&t.type==='income'&&/reload/i.test(t.note||'')){t.type='transfer';n++;}}
+  for(const t of txns){
+    if(t.source!=='tng-import')continue;
+    if(t.type==='income'&&/reload/i.test(t.note||'')){t.type='transfer';n++;}
+    else if(t.type==='expense'&&/transfer to wallet/i.test(t.note||'')){t.type='transfer';n++;}
+  }
   if(n)LS(KEYS.txns,txns);
 }
 // 当前应还周期快照：周期内信用卡消费 - 已还
@@ -2458,9 +2463,10 @@ function parseTngPage(items){
     const amount=amtIt?parseFloat(amtIt.str.replace(/[^\d.]/g,'')):null;
     const typeText=typeIt?typeIt.str:'';
     const rawType=(typeText.match(TNG_TYPE_RE)||[''])[0].trim();
-    // Reload = top-up from your own bank card into TnG, NOT real income (it's a transfer
-    // between your own accounts). Keep it out of income/expense totals.
-    const transfer=/^reload/i.test(typeText);
+    // Reload = top-up from your own bank card into TnG, NOT real income.
+    // "Transfer to Wallet" = moving your own money into the wallet, also NOT income/expense.
+    // Both are transfers between your own accounts — keep them out of income/expense totals.
+    const transfer=/^reload/i.test(typeText)||/^transfer to wallet/i.test(typeText);
     const expense=!/receive|cashback/i.test(typeText)&&!transfer;
     if(amount!=null&&merchant)out.push({date:_tngToISO(d.str),rawType,merchant,amount,currency:'MYR',expense,transfer});
   }
