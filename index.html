@@ -1252,11 +1252,12 @@ function renderBottomNav(){
 function switchTab(tab){
   currentTab=tab;
   if(tab==='finance')window._txnPage=1;
-  processRecurring();
-  renderBottomNav();
+  // 先完成面板切换（关键 DOM 操作，不能被后续异常跳过）
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('act'));
   const panel=document.getElementById('panel-'+tab);if(panel)panel.classList.add('act');
-  renderActive();
+  renderBottomNav();
+  try{processRecurring();}catch(e){console.warn('[switchTab] processRecurring error:',e);}
+  try{renderActive();}catch(e){console.warn('[switchTab] renderActive error:',e);}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderActive(){
