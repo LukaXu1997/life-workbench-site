@@ -661,9 +661,6 @@ try{
 <div class="panel act" id="panel-index">
   <div class="ig" id="indexGrid"></div>
   <div class="today-handle" id="todayHandle"><h3><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>今天要处理</h3><div id="todayHandleContent"></div></div>
-  <div class="card"><div class="section-title">近 7 日收支趋势</div>
-    <svg id="trendChart" viewBox="0 0 360 170" style="width:100%;height:auto;max-height:220px" preserveAspectRatio="xMidYMid meet"></svg>
-  </div>
 </div>
 
 <!-- ===== Panel 2: 记账理财 ===== -->
@@ -1429,17 +1426,15 @@ function renderIndex(){
       '</div>'+
       '<div class="sum-card fin" onclick="switchTab(\'finance\')">'+
         '<div class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 1 0-4h3Z"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div>'+
-        '<div class="sc-lbl">本月支出</div>'+
-        '<div class="sc-val">'+monthExpStr+'</div>'+
-        '<div class="sc-sub">本月支出 · <span class="sc-trend '+trendCls+'">'+trendArrow+' '+trendPct+'%</span> 较上周</div>'+
+        '<div class="sc-lbl">记账理财</div>'+
+        '<div class="sc-sub">收入 · 支出 · 预算 · 查看 →</div>'+
       '</div>'+
       '<div class="sum-card cloud full" style="flex-direction:row;align-items:center;gap:14px" onclick="switchTab(\'settings\')">'+
         '<div class="sc-ico" style="position:static;top:auto;right:auto;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>'+
         '<div style="flex:1;min-width:0"><div class="sc-lbl" style="margin-bottom:2px">云端同步</div><div id="dashCloudStatus" style="font-size:14px">'+renderCloudStatus()+'</div></div>'+
         '<div style="color:var(--t3);font-size:14px;font-weight:600;flex-shrink:0">查看 →</div>'+
       '</div>'+
-    '</div>'+
-    '<div class="lw-card"><div class="lw-sec-title">最近记录 <span class="link" onclick="switchTab(\'finance\')">全部 →</span></div>'+(recentRecordsList||'<div class="diary-empty">暂无记录</div>')+'</div>';
+    '</div>';
   renderTrendChart();refreshCloudStatus();
 }
 // ===== AI Assistant（Apple Intelligence 风格 · 本地计算摘要，无需后端） =====
@@ -1492,7 +1487,7 @@ function renderTrendChart(){
   });
   svg+='<rect x="'+(W-92)+'" y="8" width="8" height="8" rx="2" fill="#ff3b30" opacity="0.85"/><text x="'+(W-80)+'" y="15" font-size="10" fill="#6e6e73">支出</text>';
   svg+='<rect x="'+(W-46)+'" y="8" width="8" height="8" rx="2" fill="#34c759" opacity="0.85"/><text x="'+(W-34)+'" y="15" font-size="10" fill="#6e6e73">收入</text>';
-  document.getElementById('trendChart').innerHTML=svg;
+  const tc=document.getElementById('trendChart');if(tc)tc.innerHTML=svg;
 }
 
 // ==================== TAB 2: FINANCE ====================
