@@ -3279,7 +3279,7 @@ function initTheme(){
 function updateGreeting(){
   const now=new Date();
   const h=now.getHours();
-  const g=h<11?'Good Morning':(h<18?'Good Afternoon':'Good Evening');
+  const g=h<12?'Good Morning':(h<18?'Good Afternoon':'Good Evening');
   const hi=document.getElementById('lwGreetHi'); if(hi)hi.textContent=g+', Luka';
   const sub=document.getElementById('lwGreetSub'); if(sub){const wd=['日','一','二','三','四','五','六'];sub.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+wd[now.getDay()]+' · V2.2.1';}
 }
