@@ -1383,7 +1383,8 @@ function renderIndex(){
   if(incompleteHabits>0)focusParts.push(incompleteHabits+' 个习惯待打卡');
   if(urgentBuy>0)focusParts.push(urgentBuy+' 件急买');
   const focusText = focusParts.length? focusParts.join(' · ') : '今天没有待办，轻松一下';
-  const greeting = now.getHours()<11?'早上好':(now.getHours()<18?'下午好':'晚上好');
+  const gh=now.getHours();
+  const greeting = gh<12?'早上好':(gh<14?'中午好':(gh<18?'下午好':'晚上好'));
   const budgetUsedPct = (budgetCNY && budgetCNY.amount>0)? Math.min(100, Math.round(monthExpenseCNY/budgetCNY.amount*100)) : (remainCNY!==null?0:null);
   // ---- 近 7 日支出趋势 sparkline ----
   const sparkDays=[];for(let i=6;i>=0;i--)sparkDays.push(addDays(today,-i));
