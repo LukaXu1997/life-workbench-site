@@ -47,6 +47,9 @@ a{color:inherit;text-decoration:none}
 .the{font-size:13px;color:var(--t3);text-align:center;padding:10px 0}
 .panel{display:none;padding:0 20px 24px}
 .panel.act{display:block}
+/* Triple-sync reinforcement: the hidden attribute + !important guarantees a
+   non-active panel can NEVER be visible even if a stale inline style lingers. */
+.panel[hidden]{display:none!important}
 .section-title{font-size:15px;font-weight:600;margin:0 0 10px;color:var(--t1);display:flex;align-items:center;justify-content:space-between}
 .ig{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .ic{background:var(--surface);border-radius:var(--r3);padding:16px;box-shadow:var(--s1);border:1px solid var(--bd)}
@@ -484,7 +487,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @media(min-width:768px){.lw-sheet{max-width:560px}.lw-header{max-width:640px;margin:0 auto}}
 
 /* ============================================================
-   APPLE LIQUID GLASS DESIGN LANGUAGE  (V2.2.1)
+   APPLE LIQUID GLASS DESIGN LANGUAGE  (V2.2.2)
    ============================================================ */
 /* ---- 1. Apple 系统色板（覆盖 V2 绿色主色为 iOS 蓝） ---- */
 :root{--ac:#007AFF;--acd:#0066D6;--acl:#E8F1FF;--gr:#34C759;--wa:#FF9500;--er:#FF3B30;--bl:#0A84FF;--t1:#1D1D1F;--bg:#F5F5F7;
@@ -677,7 +680,8 @@ try{
     <div class="fg" style="flex:1;min-width:80px"><label>备注</label><input type="text" id="txnNote" placeholder="选填"></div>
     <div class="fg" style="flex-shrink:0"><label>日期</label><input type="date" id="txnDate"></div>
     <button class="ocr-btn" onclick="document.getElementById('ocrInput').click()" title="拍照/导入图片，自动识别金额"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>拍照</button>
-    <button class="bp" onclick="addTransaction()">记录</button></div>
+    <button class="bp" onclick="addTransaction()">记录</button>
+    </div>
     <div class="fr mb12" style="align-items:center;gap:10px">
       <div class="fg" style="flex-shrink:0"><label>支付方式</label><div class="tt" id="paymentToggle"><button class="apm" onclick="setPaymentMethod('cash')" id="pmCash">现金</button><button onclick="setPaymentMethod('card')" id="pmCard">信用卡</button></div></div>
       <div id="cardHint" class="hidden" style="font-size:11px;color:var(--ac);font-weight:500;flex:1;padding:4px 0;display:flex;align-items:center;gap:5px"><span style="display:inline-flex;color:var(--ac)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="11" x2="22" y2="11"/></svg></span>信用卡模式：按当前汇率自动换算为人民币计入月度预算，原币种留作记录</div>
@@ -688,7 +692,7 @@ try{
       <input type="date" id="txnRecurEnd" placeholder="结束日期（可选）" style="flex:1;min-width:120px" title="结束日期（可选）">
       <div id="recurPayBadge" style="font-size:11px;color:var(--acd);font-weight:600;display:flex;align-items:center;gap:4px;background:var(--surface);padding:4px 8px;border-radius:8px"></div>
     </div>
-  </div></div>
+  </div>
   <input type="file" id="ocrInput" accept="image/*" capture="environment" class="hidden" onchange="processOCRImage(event)">
   <div class="ocr-zone hidden" id="ocrZone">
     <div class="ocr-preview"><img id="ocrPreviewImg" src="" alt="预览"></div>
@@ -1249,24 +1253,36 @@ function renderBottomNav(){
 }
 
 // ==================== TAB SWITCHING ====================
-// 安全守卫：强制确保只有 currentTab 对应的面板可见，修复任何状态不一致
+// 三重显隐同步守卫：确保只有 currentTab 对应面板可见。
+// 同时设置 .act class（CSS 兜底）、hidden 属性、inline display，
+// 即使其它代码遗留了错误的 inline style，也会被这里强制纠正。
 function _syncPanelVisibility(){
   document.querySelectorAll('.panel').forEach(p=>{
     const want=(p.id==='panel-'+currentTab);
-    if(want&&!p.classList.contains('act'))p.classList.add('act');
-    if(!want&&p.classList.contains('act'))p.classList.remove('act');
+    if(want){
+      if(!p.classList.contains('act'))p.classList.add('act');
+      p.hidden=false;
+      p.style.display='block';
+    }else{
+      if(p.classList.contains('act'))p.classList.remove('act');
+      p.hidden=true;
+      p.style.display='none';
+    }
   });
 }
 function switchTab(tab){
+  // 先校验 tab 合法性，非法 tab 直接返回，不改变 currentTab / 面板状态
+  const valid=['index','tasks','finance','journal','settings'];
+  if(!valid.includes(tab)){console.warn('[switchTab] 非法 tab，已忽略：',tab);return;}
   currentTab=tab;
   if(tab==='finance')window._txnPage=1;
-  // 先完成面板切换（关键 DOM 操作，不能被后续异常跳过）
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('act'));
-  const panel=document.getElementById('panel-'+tab);if(panel)panel.classList.add('act');
+  // 1) 立即同步面板显隐（顶层面板状态，绝不能被后续渲染异常影响）
+  _syncPanelVisibility();
   renderBottomNav();
   try{processRecurring();}catch(e){console.warn('[switchTab] processRecurring error:',e);}
   try{renderActive();}catch(e){console.warn('[switchTab] renderActive error:',e);}
-  _syncPanelVisibility(); // 最终安全守卫：确保面板与 currentTab 一致
+  // 2) 最终安全守卫：渲染无论是否抛错，面板显隐都与 currentTab 一致
+  _syncPanelVisibility();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderActive(){
@@ -3326,7 +3342,7 @@ function updateGreeting(){
   const h=now.getHours();
   const g=h<12?'Good Morning':(h<18?'Good Afternoon':'Good Evening');
   const hi=document.getElementById('lwGreetHi'); if(hi)hi.textContent=g+', Luka';
-  const sub=document.getElementById('lwGreetSub'); if(sub){const wd=['日','一','二','三','四','五','六'];sub.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+wd[now.getDay()]+' · V2.2.1';}
+  const sub=document.getElementById('lwGreetSub'); if(sub){const wd=['日','一','二','三','四','五','六'];sub.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+wd[now.getDay()]+' · V2.2.2';}
 }
 function updateCloudPill(){
   const dot=document.getElementById('lwCloudDot'),txt=document.getElementById('lwCloudText');
@@ -3356,7 +3372,7 @@ function setTaskSeg(seg,btn,skipRender){
 }
 
 // ==================== V2: JOURNAL TAB (diary/inbox/media) ====================
-function renderJournal(){setJournalSeg(currentJournalSeg,null,false);}
+function renderJournal(){_syncPanelVisibility();setJournalSeg(currentJournalSeg,null,false);}
 function setJournalSeg(seg,btn,skipRender){
   currentJournalSeg=seg;
   document.querySelectorAll('#journalSeg button').forEach(b=>b.classList.remove('on'));
@@ -3487,17 +3503,19 @@ function initSwipeNav(){
 }
 function animateSwipeTransition(dir,cb){
   const panels=document.getElementById('panelContainer')||document.querySelector('.panels');
-  if(!panels){cb();return}
+  if(!panels){try{cb();}catch(e){console.warn('[swipe] cb error:',e);} _syncPanelVisibility(); return}
   const activePanel=panels.querySelector('.panel.act');
   if(activePanel){
     activePanel.style.transition='transform .25s ease,opacity .25s ease';
     activePanel.style.transform='translateX('+(dir==='left'?-30:30)+'%)';
     activePanel.style.opacity='0';
     setTimeout(()=>{
-      cb();
+      // 切换 tab（switchTab 内部已立即做三重同步，旧面板此刻已被 display:none/hidden）
+      try{cb();}catch(e){console.warn('[swipe] cb error:',e);}
+      _syncPanelVisibility();   // 切换后强制同步，确保旧面板不会残留可见
       requestAnimationFrame(()=>{
         const newPanel=panels.querySelector('.panel.act');
-        if(newPanel){
+        if(newPanel && newPanel!==activePanel){
           newPanel.style.transition='none';
           newPanel.style.transform='translateX('+(dir==='left'?30:-30)+'%)';
           newPanel.style.opacity='0';
@@ -3508,10 +3526,12 @@ function animateSwipeTransition(dir,cb){
             setTimeout(()=>{newPanel.style.transition='';newPanel.style.transform='';newPanel.style.opacity=''},260);
           });
         }
+        // 旧面板样式清理（此时已被 _syncPanelVisibility 设为 display:none+hidden，清理 inline 不影响显隐）
         activePanel.style.transition='';activePanel.style.transform='';activePanel.style.opacity='';
+        _syncPanelVisibility();  // 再次兜底，杜绝旧面板在切换完成后被重新设为可见
       });
     },200);
-  }else{cb()}
+  }else{try{cb();}catch(e){console.warn('[swipe] cb error:',e);} _syncPanelVisibility();}
 }
 
 function init(){
