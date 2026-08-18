@@ -2395,6 +2395,10 @@ function renderSettings(){
   if(di&&!di.value)di.value=getCardDueDay();
   const ch=document.getElementById('cardCycleHint');
   if(ch)ch.textContent='当前：账单日 '+getCardStmtDay()+' 号 · 还款日 '+getCardDueDay()+' 号';
+// 检测是否运行在受限环境（iframe / 预览器），此类环境下 Supabase 请求必然 CORS 失败
+function _isRestrictedEnv(){try{return window.self!==window.top||/workbuddy|preview|sandbox/i.test(location.hostname);}catch(e){return true;}}
+function _sbToast(msg,type){if(_isRestrictedEnv())console.warn('[Supabase]',msg);else toastMsg(msg,type);}
+
   // Supabase 配置
   const su=document.getElementById('sbUrl');if(su&&!su.value)su.value=LS(KEYS.sbUrl)||'';
   const sk=document.getElementById('sbKey');if(sk&&!sk.value)sk.value=LS(KEYS.sbKey)||'';
@@ -2642,7 +2646,7 @@ async function sbTest(){
     toastMsg('连接成功 ✓（文件已存在）');
   }catch(e){
     const raw=e&&e.message?e.message:String(e);
-    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){toastMsg('网络/CORS 失败：请用你自己的手机/电脑浏览器打开本页测试；确认项目地址格式为 https://项目ref.supabase.co 且真实存在；确认网络能访问 supabase.co','error');return;}
+    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){_sbToast('网络/CORS 失败：请用你自己的手机/电脑浏览器打开本页测试；确认项目地址格式为 https://项目ref.supabase.co 且真实存在；确认网络能访问 supabase.co','error');return;}
     toastMsg('Supabase 连接失败：'+raw,'error');
   }
 }
@@ -2702,7 +2706,7 @@ async function supabaseBackupNow(opts){
   }catch(e){
     const raw=e&&e.message?e.message:String(e);
     _sbUploading=false;_sbLastError=raw;refreshCloudStatus();
-    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){if(!silent)toastMsg('网络/CORS 失败：请用你自己的浏览器打开本页测试；确认网络能访问 supabase.co','error');return;}
+    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){if(!silent)_sbToast('网络/CORS 失败：请用你自己的浏览器打开本页测试；确认网络能访问 supabase.co','error');return;}
     if(!silent)toastMsg('Supabase 备份失败：'+raw,'error');
   }
 }
@@ -2824,7 +2828,7 @@ async function sbListVersions(populate){
     return arr;
   }catch(e){
     const raw=e&&e.message?e.message:String(e);
-    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){if(populate)toastMsg('网络/CORS 失败：请用你自己的浏览器打开本页测试','error');return [];}
+    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){if(populate)_sbToast('网络/CORS 失败：请用你自己的浏览器打开本页测试','error');return [];}
     if(populate)toastMsg('获取版本列表失败：'+raw,'error');return [];
   }
 }
@@ -2868,7 +2872,7 @@ async function supabaseRestoreNow(){
     renderAll();toastMsg('已从 Supabase 恢复 ✓');
   }catch(e){
     const raw=e&&e.message?e.message:String(e);
-    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){toastMsg('网络/CORS 失败：请用你自己的浏览器打开本页测试；确认网络能访问 supabase.co','error');return;}
+    if(/failed to fetch|networkerror|network error|typeerror/i.test(raw)){_sbToast('网络/CORS 失败：请用你自己的浏览器打开本页测试；确认网络能访问 supabase.co','error');return;}
     toastMsg('Supabase 恢复失败：'+raw,'error');
   }
 }
@@ -2912,7 +2916,7 @@ function renderSbTimeline(versions){
 }
 // 自动同步：数据变化 → 30 秒防抖 → 上传最新（由 LS 写入钩子触发）
 function scheduleAutoBackup(){
-  if(!LS(KEYS.sbEnabled))return;
+  if(!LS(KEYS.sbEnabled)||_isRestrictedEnv())return;
   if(_sbTimer)clearTimeout(_sbTimer);
   _sbTimer=setTimeout(()=>{
     _sbTimer=null;
@@ -3541,8 +3545,8 @@ function init(){
   }catch(e){}
   startReminderEngine();
   // 云端自动同步：不再固定轮询。改为「数据变化 → 30 秒防抖上传」（见 LS 写入钩子 scheduleAutoBackup）。
-  // 启动后先传一次（数据有变化才上传，hash 检测会跳过无变化的情况）。
-  if(LS(KEYS.sbEnabled))setTimeout(()=>{ if(LS(KEYS.sbEnabled))supabaseBackupNow({silent:true}); }, 4000);
+  // 启动后先传一次（数据有变化才上传，hash 检测会跳过无变化的情况）。iframe/预览环境跳过。
+  if(LS(KEYS.sbEnabled)&&!_isRestrictedEnv())setTimeout(()=>{ if(LS(KEYS.sbEnabled))supabaseBackupNow({silent:true}); }, 4000);
 }
 init();
 
