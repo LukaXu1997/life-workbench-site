@@ -1249,6 +1249,14 @@ function renderBottomNav(){
 }
 
 // ==================== TAB SWITCHING ====================
+// 安全守卫：强制确保只有 currentTab 对应的面板可见，修复任何状态不一致
+function _syncPanelVisibility(){
+  document.querySelectorAll('.panel').forEach(p=>{
+    const want=(p.id==='panel-'+currentTab);
+    if(want&&!p.classList.contains('act'))p.classList.add('act');
+    if(!want&&p.classList.contains('act'))p.classList.remove('act');
+  });
+}
 function switchTab(tab){
   currentTab=tab;
   if(tab==='finance')window._txnPage=1;
@@ -1258,6 +1266,7 @@ function switchTab(tab){
   renderBottomNav();
   try{processRecurring();}catch(e){console.warn('[switchTab] processRecurring error:',e);}
   try{renderActive();}catch(e){console.warn('[switchTab] renderActive error:',e);}
+  _syncPanelVisibility(); // 最终安全守卫：确保面板与 currentTab 一致
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderActive(){
@@ -1267,6 +1276,7 @@ function renderActive(){
   if(currentTab==='tasks')renderTasks();
   if(currentTab==='journal')renderJournal();
   if(currentTab==='settings')renderSettings();
+  _syncPanelVisibility(); // 每次渲染后校验
 }
 function renderAll(){renderTodayHandle();renderActive();checkDataCount()}
 
@@ -3530,6 +3540,7 @@ function init(){
   setPaymentMethod('cash');
   renderBottomNav();
   renderAll();
+  _syncPanelVisibility(); // init 完成后确保面板状态一致
   // Init collapsible form: hidden on mobile, visible on desktop
   if(window.innerWidth<900){_addFormOpen=false;const b=document.getElementById('addFormBody');if(b)b.classList.add('mobile-hidden');const l=document.getElementById('toggleAddFormLabel');if(l)l.textContent='记一笔'}
   updateGreeting();
