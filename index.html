@@ -531,6 +531,11 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 /* ---- 4. 浮动玻璃底部导航（iOS Tab Bar · 移动端紧凑版） ---- */
 .bnav{
   position:fixed;left:16px;right:16px;bottom:0;margin:0 auto;width:auto;max-width:632px;z-index:100;
+  /* 强制独立合成层，修复 iOS Safari 中 fixed+backdrop-filter 首屏不绘制（整条导航看不见）的已知 bug */
+  transform:translateZ(0);
+  will-change:transform;
+  /* 半透明玻璃兜底：即使 backdrop-filter 在本机不支持/失效，也用较高不透明度的实色背景保证清晰可见 */
+  background:rgba(255,255,255,.9);
   background:var(--glass);
   backdrop-filter:blur(20px) saturate(180%);
   -webkit-backdrop-filter:blur(20px) saturate(180%);
