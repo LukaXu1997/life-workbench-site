@@ -1,5 +1,5 @@
 // Service Worker for 生活工作台 PWA
-const CACHE = 'life-workbench-v25';
+const CACHE = 'life-workbench-v26';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -24,19 +24,21 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Network-first for HTML — always latest version (key fix for dark mode not refreshing)
+  // stale-while-revalidate for HTML: serve cached version instantly (fast repeat
+  // loads), then fetch the fresh version in the background and update the cache.
   const isHTML = req.mode === 'navigate' ||
     (req.headers.get('accept') || '').includes('text/html') ||
     url.pathname === '/' || url.pathname.endsWith('.html');
   if (isHTML) {
     event.respondWith(
-      fetch(req).then((res) => {
-        if (res && res.status === 200) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-        }
-        return res;
-      }).catch(() => caches.match(req).then(r => r || caches.match('/')))
+      caches.open(CACHE).then((cache) => {
+        const cached = cache.match(req);
+        const fetched = fetch(req).then((res) => {
+          if (res && res.status === 200) cache.put(req, res.clone());
+          return res;
+        }).catch(() => cached.then(r => r || caches.match('/')));
+        return cached.then((c) => c || fetched);
+      })
     );
     return;
   }

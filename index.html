@@ -531,19 +531,18 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 /* ---- 4. 浮动玻璃底部导航（iOS Tab Bar · 移动端紧凑版） ---- */
 .bnav{
   position:fixed;left:16px;right:16px;bottom:0;margin:0 auto;width:auto;max-width:632px;z-index:100;
-  /* 强制独立合成层，修复 iOS Safari 中 fixed+backdrop-filter 首屏不绘制（整条导航看不见）的已知 bug */
+  /* 强制独立合成层，修复 iOS Safari 中 fixed+backdrop-filter 首屏不绘制的已知 bug */
   transform:translateZ(0);
-  will-change:transform;
-  /* 半透明玻璃兜底：即使 backdrop-filter 在本机不支持/失效，也用较高不透明度的实色背景保证清晰可见 */
-  background:rgba(255,255,255,.9);
+  /* 玻璃背景：由 CSS 变量 --glass 控制（亮色 rgba(255,255,255,.62) / 暗色 rgba(28,28,30,.58)），
+     不写死颜色，避免深色模式下白底白字不可见 */
   background:var(--glass);
   backdrop-filter:blur(20px) saturate(180%);
   -webkit-backdrop-filter:blur(20px) saturate(180%);
   border:1px solid var(--glass-bd);border-bottom:none;
-  border-radius:18px 18px 0 0;            /* 保留圆角，但只圆上方，避免巨型悬浮卡片感 */
+  border-radius:18px 18px 0 0;
   box-shadow:0 -2px 16px rgba(31,38,135,.10);
   padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px));
-  min-height:64px;box-sizing:border-box; /* 主体 ~64px，加安全区后总高 ≤88px */
+  min-height:64px;box-sizing:border-box;
 }
 .bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;background:transparent;border:0;color:var(--t1);font-size:12px;font-weight:500;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;overflow:hidden}
 .bn:focus{outline:0}
@@ -641,7 +640,6 @@ try{
   })();
 }catch(e){}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -1848,7 +1846,8 @@ function processOCRImage(e){
   reader.readAsDataURL(file);
 }
 function runOCR(dataUrl){
-  Tesseract.recognize(dataUrl,'chi_sim+eng',{logger:m=>{
+  loadTesseract().then(T=>{
+  T.recognize(dataUrl,'chi_sim+eng',{logger:m=>{
     if(m.status==='recognizing text'){
       const p=Math.round(m.progress*100);
       document.getElementById('ocrLoading').querySelector('span').textContent='正在识别… '+p+'%';
@@ -1869,6 +1868,7 @@ function runOCR(dataUrl){
     document.getElementById('ocrLoading').classList.add('hidden');
     document.getElementById('ocrError').textContent='识别失败，请检查图片清晰度或手动输入';
     document.getElementById('ocrError').classList.remove('hidden');
+  });
   });
 }
 function parseAmount(raw){
@@ -2542,6 +2542,20 @@ function loadPdfJs(){
     document.head.appendChild(s);
   });
   return _pdfjsLoading;
+}
+// Tesseract (OCR) 懒加载：仅在首次拍照识别时才下载，避免阻塞首屏渲染
+let _tesseractLoading=null;
+function loadTesseract(){
+  if(window.Tesseract&&window.Tesseract.recognize)return Promise.resolve(window.Tesseract);
+  if(_tesseractLoading)return _tesseractLoading;
+  _tesseractLoading=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=()=>res(window.Tesseract);
+    s.onerror=()=>rej(new Error('Tesseract 加载失败（首次识别需联网）'));
+    document.head.appendChild(s);
+  });
+  return _tesseractLoading;
 }
 const TNG_TYPE_ALT='PayDirect Payment|DuitNow QR TNGD|DuitNow QR|Receive from Wallet|Transfer to Wallet|Payment|Reload|Cashback';
 const TNG_TYPE_RE=new RegExp('('+TNG_TYPE_ALT+')','i');
