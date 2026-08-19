@@ -1,5 +1,5 @@
 // Service Worker for 生活工作台 PWA
-const CACHE = 'life-workbench-v26';
+const CACHE = 'life-workbench-v27';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
