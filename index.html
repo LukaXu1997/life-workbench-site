@@ -1174,7 +1174,44 @@ let mediaTypeFilter='all';
 let mediaStatusFilter='all';
 let mediaRating=0;
 
-function LS(k,v){if(v===undefined){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}try{localStorage.setItem(k,JSON.stringify(v));if(k!==KEYS.lastSync&&k!==KEYS.sbLastSync&&k!==KEYS.sbLastHash&&k!==KEYS.sbLastSize)scheduleAutoBackup();return true}catch(e){toastMsg('存储失败：浏览器空间不足，建议导出数据后清理','error');return false}}
+// ==================== STORAGE (resilient) ====================
+// localStorage 可能在沙箱 iframe / 预览环境 / 无痕模式下完全不可用，或在空间
+// 已满时抛错。这里统一探测一次：若不可用则降级为内存存储（本次会话仍可用），
+// 且只在第一次失败时提示一次，避免每次写入都弹「存储失败」刷屏。
+let _memStore={}, _lsOK=true, _storageWarned=false;
+(function _probeStorage(){
+  try{
+    const k='__lw_probe__';
+    localStorage.setItem(k,'1'); localStorage.removeItem(k);
+    _lsOK=true;
+  }catch(e){ _lsOK=false; }
+})();
+function _lsGet(k){
+  if(_lsOK){ try{return localStorage.getItem(k);}catch(e){} }
+  return (k in _memStore)?_memStore[k]:null;
+}
+function _lsSet(k,v){
+  if(_lsOK){
+    try{ localStorage.setItem(k,v); return true; }
+    catch(e){ /* 写入失败，降级到内存 */ }
+  }
+  _memStore[k]=v;
+  if(!_storageWarned){
+    _storageWarned=true;
+    if(_isRestrictedEnv()){
+      console.warn('[storage] localStorage 在预览/沙箱环境中不可用，已降级为内存存储（刷新后丢失）。');
+    }else{
+      toastMsg('浏览器存储已满或不可用：本次更改仅临时保存在内存，刷新将丢失，请尽快导出 JSON 备份','error');
+    }
+  }
+  return false;
+}
+function LS(k,v){
+  if(v===undefined){ try{return JSON.parse(_lsGet(k));}catch(e){return null} }
+  try{ _lsSet(k,JSON.stringify(v)); }catch(e){}
+  if(k!==KEYS.lastSync&&k!==KEYS.sbLastSync&&k!==KEYS.sbLastHash&&k!==KEYS.sbLastSize&&k!==KEYS.lastBackup) scheduleAutoBackup();
+  return true;
+}
 function uid(p){return (p||'id')+Date.now()+Math.random().toString(36).slice(2,6)}
 function tdy(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function addDays(ds,n){const d=ds?parseDate(ds):new Date();d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
