@@ -6,7 +6,7 @@
 
 ## 文件说明
 - `index.html` —— 应用主程序（单文件，内联 CSS/JS）
-- `sw.js` —— Service Worker（PWA 离线 / 安装），缓存版本 `life-workbench-app-v1`
+- `sw.js` —— Service Worker（PWA 离线 / 安装），缓存名随版本号变化（如 `life-workbench-2.2.5`），发布新版后旧 Cache 在 activate 时自动清理
 - `version.json` —— 版本信号文件（客户端据此检测新版本并自动刷新）
 - `.nojekyll` —— 关闭 Jekyll 处理，避免静态文件被误改
 

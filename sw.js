@@ -8,7 +8,8 @@
 //   - install 用 skipWaiting()，activate 用 clients.claim()+仅清理本应用前缀旧 Cache，
 //     新版本尽快生效，旧 Cache 不残留，且不影响同域名下其他应用。
 const CACHE_PREFIX = 'life-workbench-';
-const CACHE = 'life-workbench-app-v1'; // 仅当 SW 缓存结构 / 静态资源策略变化时才升 v2 / v3 …
+const APP_VERSION = '2.2.5'; // 与 index.html、version.json 保持一致。发布新版时三处同步修改即可。
+const CACHE = `life-workbench-${APP_VERSION}`; // 每发布一版 = 一个全新 Cache 名；activate 时会删除旧的 life-workbench-* Cache
 
 // 仅允许缓存的跨域静态 CDN（版本已 pin，新版本 = 新 URL）。其余跨域（Supabase 等）透传不缓存。
 const STATIC_CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'unpkg.com'];
