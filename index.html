@@ -514,7 +514,7 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @media(min-width:768px){.lw-sheet{max-width:560px}.lw-header{max-width:640px;margin:0 auto}}
 
 /* ============================================================
-   APPLE LIQUID GLASS DESIGN LANGUAGE  (V2.2.4)
+   APPLE LIQUID GLASS DESIGN LANGUAGE  (V2.2.5)
    ============================================================ */
 /* ---- 1. Apple 系统色板（覆盖 V2 绿色主色为 iOS 蓝） ---- */
 :root{--ac:#007AFF;--acd:#0066D6;--acl:#E8F1FF;--gr:#34C759;--wa:#FF9500;--er:#FF3B30;--bl:#0A84FF;--t1:#1D1D1F;--bg:#F5F5F7;
@@ -3635,7 +3635,7 @@ function animateSwipeTransition(dir,cb){
 
 // ==================== BOOT HELPERS (global scope) ====================
 // 当前 App 版本号。与 version.json、关于页、首页副标题保持一致。
-const APP_VERSION='2.2.4';
+const APP_VERSION='2.2.5';
 // 自修复更新机制：iOS 把 PWA 加到主屏后，从后台恢复时不会重新加载页面，
 // 也不会重新触发 SW 的 fetch。因此需在 JS 层主动探测新版本并刷新一次。
 let _reloadGuard=false; // 防止同一次会话内重复刷新
@@ -3710,16 +3710,16 @@ function init(){
   updateCloudPill();
   maybeShowPreviewBanner();
   const av=document.getElementById('aboutVer'); if(av)av.textContent='v'+APP_VERSION;
-  // Register Service Worker for offline. No cache-bust query string — the
-  // browser already re-installs the SW only when sw.js content changes.
+  // Register Service Worker for offline auto-update.
+  // - updateViaCache:'none' => 浏览器绝不用 HTTP 缓存提供 sw.js，部署新版后
+  //   立即被发现，无需手动清 Safari 缓存 / 删除主屏 App。
+  // - reg.update() 主动检查新 SW（覆盖 iOS 主屏「从后台恢复不重新导航」的场景）。
+  // - sw.js 内 skipWaiting()+clients.claim() 让新 SW 尽快接管。
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').then(reg=>{
-      // When a freshly deployed SW takes control, reload once so the new
-      // HTML/JS is actually used (fixes "PWA never updates" on iOS home screen).
-      let refreshing=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{
-        if(refreshing)return; refreshing=true; location.reload();
-      });
+    navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(reg=>{
+      reg.update().catch(()=>{});
+      // 新 SW 接管后重新检查版本；checkForUpdate 仅在版本更新时才刷新页面。
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{ checkForUpdate(); });
     }).catch(()=>{});
   }
   // 首屏自检一次 + 应用从后台恢复时再检一次（iOS 主屏 PWA 的关键场景）
