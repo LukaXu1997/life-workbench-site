@@ -6,7 +6,8 @@
 
 ## 文件说明
 - `index.html` —— 应用主程序（单文件，内联 CSS/JS）
-- `sw.js` —— Service Worker（PWA 离线 / 安装），缓存版本 `life-workbench-v24`
+- `sw.js` —— Service Worker（PWA 离线 / 安装），缓存版本 `life-workbench-app-v1`
+- `version.json` —— 版本信号文件（客户端据此检测新版本并自动刷新）
 - `.nojekyll` —— 关闭 Jekyll 处理，避免静态文件被误改
 
 ## 发布到 GitHub Pages（首次）
@@ -24,13 +25,16 @@
 > 提示：GitHub Pages 提供免费 HTTPS 与永久固定链接，不受沙箱生命周期影响。
 
 ## 后续更新
-把最新的 `index.html`（以及 `sw.js`，若版本号变更）复制到本仓库根目录覆盖，然后：
+把最新的 `index.html`（以及 `sw.js` / `version.json`，若缓存策略或版本变更）复制到本仓库根目录覆盖，然后：
 ```bash
 git add -A
 git commit -m "update"
 git push
 ```
-发布后，用户端**强制刷新一次**（或等待 SW 缓存过期）即可加载新版本。
+发布后：
+- 已安装的 iOS Home Screen PWA 会在**启动**或**从后台恢复**时自动检查新版本；
+- 检测到新版本后**最多自动刷新一次**，无需手动清 Safari 缓存或删除主屏 App；
+- 离线时继续使用最后成功缓存的版本，应用仍可直接打开。
 
 ## 与原 CloudStudio 部署的关系
 CloudStudio 是临时沙箱（曾出现 `12803` 失效）。GitHub Pages 作为稳定的主链接；
