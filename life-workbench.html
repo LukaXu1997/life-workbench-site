@@ -697,6 +697,14 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 .imp-tbl .expense{color:#e5484d;font-weight:600}
 .imp-tbl .income{color:#30a46c;font-weight:600}
 #importTngPwdRow{display:flex;gap:8px;flex-wrap:wrap}
+/* ===== Bugfix (2026-08-21): 财务预算/收支金额在窄列中不再被截断 ===== */
+.fsum .fc .amt{white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;line-height:1.3}
+/* 待买列表：优先级标签与删除按钮不被挤压变形 */
+.shop-item .pri-tag,.shop-item .bd2{flex-shrink:0}
+/* 日程列表：左侧色条与右侧操作区不被挤压 */
+.sch-item .stripe,.sch-item .acts{flex-shrink:0}
+/* 新增日程/物品表单：移动端改为单列堆叠，避免日期/下拉被压窄或错位 */
+@media(max-width:600px){.add-form .fr{flex-direction:column;align-items:stretch}.add-form .fg{min-width:0}}
 </style>
 <script>// Early theme bootstrap — runs synchronously in <head> to prevent FOUC
 try{
