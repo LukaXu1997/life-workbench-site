@@ -466,7 +466,6 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .lw-sec-title .link{font-size:14px;font-weight:600;color:var(--acd)}
 
 /* ---- Dashboard summary cards ---- */
-.dash-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .sum-card{background:var(--surface);border-radius:var(--r4);padding:16px;box-shadow:var(--s1);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;min-height:104px}
 .sum-card.full{grid-column:1/-1}
 .sum-card .sc-ico{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;opacity:.9}
@@ -594,7 +593,6 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 }
 .lw-card{padding:18px;margin-bottom:14px}
 .sum-card{box-shadow:var(--glass-shadow)}
-.dash-cards .sum-card.cloud{background:linear-gradient(135deg,rgba(10,132,255,.22),var(--glass))!important}
 .sum-card.accent{background:linear-gradient(135deg,rgba(0,122,255,.20),var(--glass))!important;border-color:rgba(0,122,255,.28)!important}
 /* 玻璃卡轻微悬浮 + 按压反馈（Apple Motion） */
 .sum-card,.lw-card,.cloud-card{transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s}
@@ -685,8 +683,6 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   .bn.act .bn-label{color:var(--ac)}
   .bn.act svg{color:var(--ac)}
   .fab{right:28px;bottom:28px}
-  .dash-cards{grid-template-columns:repeat(3,1fr)}
-  .sum-card.cloud.full{grid-column:span 1}
 }
 
 /* ---- 9. 尊重减少动态效果偏好 ---- */
@@ -1575,16 +1571,16 @@ function renderIndex(){
 
   let budgetHtml;
   if(!budget.hasBudget){
-    budgetHtml=<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>+
+    budgetHtml='<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>'+
       '<div class="db-cap">尚未设置预算</div>'+
       '<div class="db-set" onclick="switchTab(\'finance\')">设置预算 ›</div>';
   }else if(budget.state==='over'){
-    budgetHtml=<div class="db-title db-danger"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>⚠ 已超出本月预算</span></div>+
+    budgetHtml='<div class="db-title db-danger"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>⚠ 已超出本月预算</span></div>'+
       '<div class="db-num db-danger" style="font-size:20px">'+dbMoney0(Math.abs(budget.remain))+'</div>'+
       '<div class="db-pb"><div class="db-pbf over" style="width:100%"></div></div>';
   }else{
     const cls=budget.state==='warn'?'warn':'';
-    budgetHtml=<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>+
+    budgetHtml='<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>'+
       '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'+
         '<div class="db-num" style="font-size:22px">'+dbMoney0(budget.remain)+' <span class="db-cap" style="font-size:12px">可用</span></div>'+
         '<div class="db-pct '+(budget.state==='warn'?'db-warn':'')+'">'+budget.pct+'%</div>'+
@@ -1595,7 +1591,7 @@ function renderIndex(){
   let upcomingHtml='';
   if(upcoming.length){
     upcomingHtml='<div class="db-card">'+
-      <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.up+'</span>即将到期</span></div>+
+      '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.up+'</span>即将到期</span></div>'+
       upcoming.map(s=>'<div class="db-up-item">'+
         '<div class="db-up-date">'+relDate(s.date)+'</div>'+
         '<div class="db-up-title">'+esc(s.title)+'</div>'+
@@ -1617,7 +1613,7 @@ function renderIndex(){
 
   const netStr=(mb.net>=0?'+':'-')+fmtY(Math.abs(mb.net));
   const finHtml='<div class="db-card tap" onclick="switchTab(\'finance\')">'+
-    <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.fin+'</span>本月财务</span></div>+
+    '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.fin+'</span>本月财务</span></div>'+
     '<div class="db-row"><span class="db-rk">收入</span><span class="db-rv">'+fmtY(mb.income)+'</span></div>'+
     '<div class="db-row"><span class="db-rk">支出</span><span class="db-rv">'+fmtY(mb.expense)+'</span></div>'+
     '<div class="db-sep"></div>'+
@@ -1625,7 +1621,7 @@ function renderIndex(){
   '</div>';
 
   const lifeHtml='<div class="db-card">'+
-    <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.life+'</span>生活进度</span></div>+
+    '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.life+'</span>生活进度</span></div>'+
     '<div class="db-life"><div><div class="lab">习惯</div><div class="val">'+habitsDone+' / '+habits.length+' 完成</div></div><div class="db-pct">'+habitPct+'%</div></div>'+
     '<div class="db-life" style="margin-top:12px"><div class="lab">时间</div><div class="sub">本周 '+weekPct+'% · 本月 '+monthPct+'% · 今年 '+yearPct+'%</div></div>'+
   '</div>';

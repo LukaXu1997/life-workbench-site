@@ -67,6 +67,54 @@ a{color:inherit;text-decoration:none}
 .dash-hero .hi{font-size:16px;font-weight:700;color:var(--t1)}
 .dash-hero .hf{font-size:13px;color:var(--t2);margin-top:3px}
 .dash-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* ===== Dashboard v2 (preview) ===== */
+.db-section{display:flex;flex-direction:column;gap:10px}
+.db-card{background:var(--surface);border-radius:var(--r3);padding:16px;box-shadow:var(--s1);border:1px solid var(--bd)}
+.db-card.tap{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.db-title{font-size:13px;font-weight:600;color:var(--t2);margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.db-title .more{font-size:12px;font-weight:600;color:var(--ac);cursor:pointer}
+.db-cap{font-size:12px;color:var(--t3)}
+.db-num{font-size:26px;font-weight:700;letter-spacing:-.6px;color:var(--t1);line-height:1.15;font-variant-numeric:tabular-nums}
+.db-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.db-danger{color:var(--er)!important}
+.db-warn{color:var(--wa)!important}
+.db-pb{height:6px;background:var(--dv);border-radius:4px;margin-top:12px;overflow:hidden}
+.db-pbf{height:100%;border-radius:4px;background:var(--ac);transition:width .6s ease}
+.db-pbf.warn{background:var(--wa)}
+.db-pbf.over{background:var(--er)}
+.db-warn-card{border-color:var(--wa);background:var(--wal)}
+.db-pct{font-size:14px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums}
+.db-pct.db-warn{color:var(--wa)}
+.db-tt{display:flex;align-items:center;gap:6px}
+.db-ico{width:15px;height:15px;flex-shrink:0;color:var(--t2);opacity:.9}
+.db-ico.ac{color:var(--ac)}
+.db-lbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);margin-bottom:6px}
+.db-lbl .db-ico{width:14px;height:14px}
+.db-card.tap{transition:transform .12s ease, box-shadow .12s ease}
+.db-card.tap:active{transform:scale(.985);box-shadow:none}
+
+.db-wtag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--wa);color:#fff;margin-left:6px}
+.db-set{margin-top:8px;font-size:13px;font-weight:600;color:var(--ac);cursor:pointer}
+.db-today-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.db-today-head .t{font-size:15px;font-weight:700;color:var(--t1)}
+.db-today-head .c{font-size:12px;font-weight:600;color:var(--t2);background:var(--dv);padding:2px 9px;border-radius:20px}
+.db-today-head .more{font-size:12px;font-weight:600;color:var(--ac);cursor:pointer}
+.db-up-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--dv)}
+.db-up-item:last-child{border-bottom:none}
+.db-up-date{font-size:12px;font-weight:600;color:var(--t2);min-width:58px;flex-shrink:0}
+.db-up-title{font-size:14px;color:var(--t1);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.db-up-pri{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--wa);color:#fff;flex-shrink:0}
+.db-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:14px}
+.db-row .db-rk{color:var(--t2)}
+.db-row .db-rv{font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums}
+.db-pos{color:var(--ac)!important}
+.db-neg{color:var(--er)!important}
+.db-sep{border-top:1px solid var(--dv);margin:6px 0}
+.db-life{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.db-life .lab{font-size:13px;color:var(--t2)}
+.db-life .val{font-size:15px;font-weight:700;color:var(--t1);margin-top:2px}
+.db-life .sub{font-size:12px;color:var(--t3);margin-top:2px}
+
 .pcard{background:var(--surface);border:1px solid var(--bd);border-radius:var(--r1);padding:14px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--s1)}
 .pcard.green{background:var(--acl);border-color:var(--ac)}
 .pcard .pl{font-size:12px;color:var(--t2)}
@@ -396,7 +444,7 @@ a{color:inherit;text-decoration:none}
 body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 
 /* ---- Greeting header ---- */
-.lw-header{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:14px 20px calc(12px);border-radius:var(--r4);border:1px solid var(--glass-bd);box-shadow:var(--glass-shadow);display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.lw-header{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:calc(14px + env(safe-area-inset-top,0px)) 20px 12px;border-radius:var(--r4);border:1px solid var(--glass-bd);box-shadow:var(--glass-shadow);display:flex;align-items:center;gap:12px;margin-bottom:24px}
 .lw-avatar{width:44px;height:44px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--ac),var(--acd));color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;box-shadow:var(--s1)}
 .lw-greet{flex:1;min-width:0}
 .lw-greet .g-hi{font-size:20px;font-weight:700;letter-spacing:-.3px;color:var(--t1);line-height:1.2}
@@ -418,7 +466,6 @@ body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .lw-sec-title .link{font-size:14px;font-weight:600;color:var(--acd)}
 
 /* ---- Dashboard summary cards ---- */
-.dash-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .sum-card{background:var(--surface);border-radius:var(--r4);padding:16px;box-shadow:var(--s1);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;min-height:104px}
 .sum-card.full{grid-column:1/-1}
 .sum-card .sc-ico{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;opacity:.9}
@@ -546,7 +593,6 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
 }
 .lw-card{padding:18px;margin-bottom:14px}
 .sum-card{box-shadow:var(--glass-shadow)}
-.dash-cards .sum-card.cloud{background:linear-gradient(135deg,rgba(10,132,255,.22),var(--glass))!important}
 .sum-card.accent{background:linear-gradient(135deg,rgba(0,122,255,.20),var(--glass))!important;border-color:rgba(0,122,255,.28)!important}
 /* 玻璃卡轻微悬浮 + 按压反馈（Apple Motion） */
 .sum-card,.lw-card,.cloud-card{transition:transform .22s cubic-bezier(.4,0,.2,1),box-shadow .22s}
@@ -637,8 +683,6 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   .bn.act .bn-label{color:var(--ac)}
   .bn.act svg{color:var(--ac)}
   .fab{right:28px;bottom:28px}
-  .dash-cards{grid-template-columns:repeat(3,1fr)}
-  .sum-card.cloud.full{grid-column:span 1}
 }
 
 /* ---- 9. 尊重减少动态效果偏好 ---- */
@@ -701,7 +745,6 @@ try{
   </div>
   <div class="lw-header-actions">
     <button class="lw-icon-btn" onclick="openSearch()" aria-label="搜索"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-    <div class="lw-cloud-pill" id="lwCloudPill" onclick="switchTab('settings')"><span class="dot" id="lwCloudDot"></span><span id="lwCloudText">云端</span></div>
   </div>
 </header>
 
@@ -710,7 +753,6 @@ try{
 <!-- ===== Panel 1: 首页 Dashboard ===== -->
 <div class="panel act" id="panel-index">
   <div class="ig" id="indexGrid"></div>
-  <div class="today-handle" id="todayHandle"><h3><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>今天要处理</h3><div id="todayHandleContent"></div></div>
 </div>
 
 <!-- ===== Panel 2: 记账理财 ===== -->
@@ -1425,9 +1467,9 @@ function renderTodayHandle(){
       sub:pendingHabits.map(h=>esc(h.name)).slice(0,3).join('、')+(pendingHabits.length>3?' 等':''),
       action:'switchTab(\'habits\');renderActive()',actionText:'去打卡'});
   }
-  const cont=document.getElementById('todayHandleContent');
-  if(items.length===0){cont.innerHTML='<div class="the">暂无待处理事项，今天很棒</div>';return}
-  cont.innerHTML=items.slice(0,8).map(it=>
+  const cont=document.getElementById('todayHandleContent');if(!cont)return;
+  if(items.length===0){cont.innerHTML='<div class="the">✓ 今天的事情都处理好了</div>';return}
+  cont.innerHTML=items.slice(0,5).map(it=>
     '<div class="ti '+it.cls+'"><div class="ti-l"><div class="icn">'+svgIcon(it.icon,15,15)+'</div><div class="txt"><div class="t1">'+it.title+'</div><div class="t2">'+it.sub+'</div></div></div><button class="mini-btn bp" onclick=\''+it.action+'\'>'+it.actionText+'</button></div>'
   ).join('');
 }
@@ -1453,104 +1495,163 @@ function checkDataCount(){
 }
 
 // ==================== TAB 1: LIFE INDEX ====================
+function getTodayFinanceSummary(){
+  const txns=LS(KEYS.txns)||[];const today=tdy();
+  const exp=txns.filter(t=>t.date===today&&t.type==='expense');
+  const inc=txns.filter(t=>t.date===today&&t.type==='income');
+  const expCNY=exp.filter(t=>(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
+  const expMYR=exp.filter(t=>t.currency==='MYR').reduce((s,t)=>s+(t.originalAmount||t.amount),0);
+  const incCNY=inc.filter(t=>(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
+  const incMYR=inc.filter(t=>t.currency==='MYR').reduce((s,t)=>s+(t.originalAmount||t.amount),0);
+  return {expCNY,expMYR,expCount:exp.length,incCNY,incMYR,incCount:inc.length};
+}
+function getMonthlyFinanceSummary(){
+  const txns=LS(KEYS.txns)||[];const ym=tdy().slice(0,7);
+  const income=txns.filter(t=>t.type==='income'&&t.date.startsWith(ym)&&(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
+  const expense=txns.filter(t=>t.type==='expense'&&t.date.startsWith(ym)&&(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
+  return {income,expense,net:income-expense};
+}
+function getBudgetDashboardStatus(){
+  const txns=LS(KEYS.txns)||[];const ym=tdy().slice(0,7);
+  const budgets=LS(KEYS.budgets)||[];
+  const b=budgets.find(x=>x.yearMonth===ym&&x.currency==='CNY');
+  if(!b)return {hasBudget:false};
+  const used=txns.filter(t=>t.type==='expense'&&t.date.startsWith(ym)&&(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
+  const remain=b.amount-used;
+  const pct=b.amount>0?Math.min(100,Math.round(used/b.amount*100)):0;
+  let state='normal';if(remain<0)state='over';else if(pct>=80)state='warn';
+  return {hasBudget:true,amount:b.amount,used,remain,pct,state};
+}
+function relDate(ds){
+  const d=parseDate(ds),t=parseDate(tdy());
+  const diff=Math.round((d-t)/86400000);
+  if(diff===1)return '明天';
+  if(diff>1&&diff<=7)return '周'+['日','一','二','三','四','五','六'][d.getDay()];
+  return (d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+function getUpcomingItems(){
+  const schedule=LS(KEYS.schedule)||[];const today=tdy();const end=addDays(today,7);
+  return schedule.filter(s=>!s.completed&&s.date>today&&s.date<=end)
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+}
+function getCreditCardDashboardAlert(){
+  const c=cardCycle();
+  if(c.balance<=0)return {show:false};
+  const daysLeft=Math.round((parseDate(c.due)-parseDate(tdy()))/86400000);
+  return {show:true,owe:c.owe,due:c.due,daysLeft,warn:daysLeft<=3,spendCNY:c.spendCNY,spendMYR:c.spendMYR,repaid:c.repaid};
+}
+function dbMoney0(n){return curLabel('CNY')+Math.round(Math.abs(n)).toLocaleString();}
 function renderIndex(){
-  const today=tdy(),ym=today.slice(0,7);
-  const txns=LS(KEYS.txns)||[],habits=LS(KEYS.habits)||[],budgets=LS(KEYS.budgets)||[];
+  const I={'exp': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M5 12l7 7 7-7"/></svg>', 'inc': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v13"/><path d="M19 12l-7-7-7 7"/></svg>', 'budget': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12h.01"/><path d="M21 9v6"/></svg>', 'today': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>', 'up': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>', 'cc': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>', 'fin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 20v-6M12 20v-9M16 20v-4"/></svg>', 'life': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-6-16-3 8H2"/></svg>'};
+
+  const today=tdy();
+  const txns=LS(KEYS.txns)||[],habits=LS(KEYS.habits)||[];
   const now=new Date();
   const dayOfYear=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
   const leap=(now.getFullYear()%4===0&&(now.getFullYear()%100!==0||now.getFullYear()%400===0));
-  const totalDays=leap?366:365;
-  const yearPct=Math.round(dayOfYear/totalDays*100);
+  const yearPct=Math.round(dayOfYear/(leap?366:365)*100);
   const dayOfMonth=now.getDate();
   const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   const monthPct=Math.round(dayOfMonth/daysInMonth*100);
   const weekDay=now.getDay();
   const weekPct=Math.round((weekDay===0?7:weekDay)/7*100);
-  let todayExpenseCNY=0,todayExpenseMYR=0,todayIncomeCNY=0,todayIncomeMYR=0;
-  txns.forEach(t=>{if(t.date===today){const c=t.currency||'CNY';if(t.type==='expense'){if(c==='MYR')todayExpenseMYR+=t.amount;else todayExpenseCNY+=t.amount}else if(t.type==='income'){if(c==='MYR')todayIncomeMYR+=t.amount;else todayIncomeCNY+=t.amount}}});
-  let habitsDone=0;habits.forEach(h=>{const rec=h.records&&h.records[today];if(h.type==='check'?!!rec : (h.type==='count'?rec>=h.target : !!rec))habitsDone++});
-  const budgetCNY=budgets.find(b=>b.yearMonth===ym&&b.currency==='CNY');
-  const budgetMYR=budgets.find(b=>b.yearMonth===ym&&b.currency==='MYR');
-  const monthExpenseCNY=txns.filter(t=>t.type==='expense'&&t.date.startsWith(ym)&&(t.currency||'CNY')==='CNY').reduce((s,t)=>s+t.amount,0);
-  const monthExpenseMYR=txns.filter(t=>t.type==='expense'&&t.date.startsWith(ym)&&t.currency==='MYR').reduce((s,t)=>s+t.amount,0);
-  const remainCNY=budgetCNY?budgetCNY.amount-monthExpenseCNY:null;
-  const remainMYR=budgetMYR?budgetMYR.amount-monthExpenseMYR:null;
-  const wdNames=['日','一','二','三','四','五','六'];
-  let todayExpStr='',todayIncStr='';
-  if(todayExpenseCNY&&todayExpenseMYR){todayExpStr=fmtY(todayExpenseCNY)+' + '+fmtY(todayExpenseMYR,'MYR');todayIncStr=fmtY(todayIncomeCNY)+' + '+fmtY(todayIncomeMYR,'MYR')}
-  else if(todayExpenseMYR&&!todayExpenseCNY){todayExpStr=fmtY(todayExpenseMYR,'MYR');todayIncStr=fmtY(todayIncomeMYR,'MYR')}
-  else{todayExpStr=fmtY(todayExpenseCNY);todayIncStr=fmtY(todayIncomeCNY)}
-  let budgetStr='',remainVal='',remainClass='ac';
-  if(remainCNY!==null&&remainMYR!==null){remainVal=fmtY(Math.abs(remainCNY))+' + '+fmtY(Math.abs(remainMYR),'MYR');remainClass=remainCNY<0||remainMYR<0?'er':'ac'}
-  else if(remainMYR!==null){remainVal=fmtY(Math.abs(remainMYR),'MYR');remainClass=remainMYR<0?'er':'ac'}
-  else if(remainCNY!==null){remainVal=fmtY(Math.abs(remainCNY));remainClass=remainCNY<0?'er':'ac'}
-  else{remainVal='--';budgetStr='未设定'}
-  const card=cardCycle();
-  const monthCardCNY=card.owe,monthCardCount=card.count,monthCardOrigMYR=card.spendMYR,monthCardSpend=card.spendCNY,monthCardRepaid=card.repaid;
-  let cardCardHtml;
-  if(card.count===0){
-    cardCardHtml='<div class="pcard green"><div class="pl">信用卡待还</div><div class="pv">¥0</div><div class="ps">本周期无信用卡消费</div></div>';
-  }else if(card.balance<=0){
-    const paidMain=card.over>0?('已超额 ¥'+fmt(card.over)):'已还清 ✓';
-    cardCardHtml='<div class="pcard '+(card.over>0?'over':'paid')+'"><div class="pl">信用卡待还</div><div class="pv">'+paidMain+'</div><div class="ps">本周期消费 ¥'+fmt(card.spendCNY)+(card.spendMYR>0?(' · 原币 RM'+fmt(card.spendMYR)):'')+' · 已还 ¥'+fmt(card.repaid)+'</div></div>';
+  let habitsDone=0;habits.forEach(h=>{const rec=h.records&&h.records[today];const done=h.type==='check'?!!rec:(h.type==='count'?rec>=h.target:!!rec);if(done)habitsDone++;});
+  const habitPct=habits.length?Math.round(habitsDone/habits.length*100):0;
+
+  const fin=getTodayFinanceSummary();
+  const mb=getMonthlyFinanceSummary();
+  const budget=getBudgetDashboardStatus();
+  const upcoming=getUpcomingItems();
+  const card=getCreditCardDashboardAlert();
+
+  const expAmtStr=fmtY(fin.expCNY)+(fin.expMYR>0?(' + '+fmtY(fin.expMYR,'MYR')):'');
+  const incAmtStr=fmtY(fin.incCNY)+(fin.incMYR>0?(' + '+fmtY(fin.incMYR,'MYR')):'');
+  const expSub=fin.expCount?fin.expCount+' 笔':'暂无支出';
+  const incSub=fin.incCount?fin.incCount+' 笔':'暂无收入';
+
+  let budgetHtml;
+  if(!budget.hasBudget){
+    budgetHtml='<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>'+
+      '<div class="db-cap">尚未设置预算</div>'+
+      '<div class="db-set" onclick="switchTab(\'finance\')">设置预算 ›</div>';
+  }else if(budget.state==='over'){
+    budgetHtml='<div class="db-title db-danger"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>⚠ 已超出本月预算</span></div>'+
+      '<div class="db-num db-danger" style="font-size:20px">'+dbMoney0(Math.abs(budget.remain))+'</div>'+
+      '<div class="db-pb"><div class="db-pbf over" style="width:100%"></div></div>';
   }else{
-    cardCardHtml='<div class="pcard green"><div class="pl">信用卡待还</div><div class="pv">'+fmtY(card.owe)+'</div><div class="ps">周期 '+card.ps.slice(5)+'~'+card.pe.slice(5)+' · 还款日 '+card.due.slice(5)+(card.repaid>0?' · 已还 ¥'+fmt(card.repaid):'')+(card.spendMYR>0?' · 原币 '+curLabel('MYR')+fmt(card.spendMYR):'')+'</div></div>';
+    const cls=budget.state==='warn'?'warn':'';
+    budgetHtml='<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>'+
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'+
+        '<div class="db-num" style="font-size:22px">'+dbMoney0(budget.remain)+' <span class="db-cap" style="font-size:12px">可用</span></div>'+
+        '<div class="db-pct '+(budget.state==='warn'?'db-warn':'')+'">'+budget.pct+'%</div>'+
+      '</div>'+
+      '<div class="db-pb"><div class="db-pbf '+cls+'" style="width:'+budget.pct+'%"></div></div>';
   }
-  // ---- 今日焦点 ----
-  const incompleteHabits = habits.length - habitsDone;
-  let maxStreak = 0;
-  habits.forEach(h=>{const s=habitStreak(h, today); if(s>maxStreak)maxStreak=s});
-  const urgentBuy = (LS(KEYS.shopping)||[]).filter(p=>!p.purchased && p.priority==='高').length;
-  let focusParts = [];
-  if(incompleteHabits>0)focusParts.push(incompleteHabits+' 个习惯待打卡');
-  if(urgentBuy>0)focusParts.push(urgentBuy+' 件急买');
-  const focusText = focusParts.length? focusParts.join(' · ') : '今天没有待办，轻松一下';
-  const gh=now.getHours();
-  const greeting = gh<12?'早上好':(gh<14?'中午好':(gh<18?'下午好':'晚上好'));
-  const budgetUsedPct = (budgetCNY && budgetCNY.amount>0)? Math.min(100, Math.round(monthExpenseCNY/budgetCNY.amount*100)) : (remainCNY!==null?0:null);
-  // ---- 近 7 日支出趋势 sparkline ----
-  const sparkDays=[];for(let i=6;i>=0;i--)sparkDays.push(addDays(today,-i));
-  const sparkVals=sparkDays.map(d=>txns.filter(t=>t.date===d&&t.type==='expense').reduce((s,t)=>s+t.amount,0));
-  const sparkMax=Math.max.apply(null, sparkVals.concat([1]));
-  const sparkPts=sparkVals.map((v,i)=>{const x=6+i*18;const y=30-(v/sparkMax)*24;return x.toFixed(1)+','+y.toFixed(1)}).join(' ');
-  const monthExpStr = (monthExpenseCNY?fmtY(monthExpenseCNY):'¥0')+(monthExpenseMYR>0?(' + '+fmtY(monthExpenseMYR,'MYR')):'');
-  // ---- 今日概览 ----
-  const scheduleAll=LS(KEYS.schedule)||[];
-  const todayTaskCount=scheduleAll.filter(s=>s.date===today).length;
-  const todayIncomplete=scheduleAll.filter(s=>s.date===today&&!s.completed).length;
-  const incompleteCount=incompleteHabits+todayIncomplete;
-  const recentTxns=txns.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,3);
-  const recentRecordsList=recentTxns.length?recentTxns.map(t=>'<div class="ov-rec">'+esc(t.note||t.category||'记录')+' · '+fmtY(t.amount,t.currency||'CNY')+'</div>').join(''):'<div class="ov-rec muted">暂无记录</div>';
-  // ---- 本周支出趋势（环比上周）----
-  const lastWkDays=[];for(let i=13;i>=7;i--)lastWkDays.push(addDays(today,-i));
-  const w0=lastWkDays.map(d=>txns.filter(t=>t.date===d&&t.type==='expense').reduce((s,t)=>s+t.amount,0)).reduce((a,b)=>a+b,0);
-  const w1=sparkVals.reduce((a,b)=>a+b,0);
-  let trendDir='flat',trendPct=0;
-  if(w0>0){trendPct=Math.round(Math.abs(w1-w0)/w0*100);trendDir=w1>w0?'up':'down';}
-  const trendArrow=trendDir==='up'?'↑':(trendDir==='down'?'↓':'→');
-  const trendCls=trendDir==='up'?'up':(trendDir==='down'?'down':'flat');
-  document.getElementById('indexGrid').innerHTML=
-    '<div class="dash-cards">'+
-      '<div class="sum-card task" onclick="switchTab(\'tasks\')">'+
-        '<div class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>'+
-        '<div class="sc-lbl">今日任务</div>'+
-        '<div class="sc-val">'+todayTaskCount+'</div>'+
-        '<div class="sc-sub">'+(todayIncomplete>0?todayIncomplete+' 个待完成':'全部完成 ✓')+' · 查看全部 →</div>'+
-      '</div>'+
-      '<div class="sum-card fin" onclick="switchTab(\'finance\')">'+
-        '<div class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 1 0-4h3Z"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></div>'+
-        '<div class="sc-lbl">记账理财</div>'+
-        '<div class="sc-sub">收入 · 支出 · 预算 · 查看 →</div>'+
-      '</div>'+
-      '<div class="sum-card cloud full" style="flex-direction:row;align-items:center;gap:14px" onclick="switchTab(\'settings\')">'+
-        '<div class="sc-ico" style="position:static;top:auto;right:auto;flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>'+
-        '<div style="flex:1;min-width:0"><div class="sc-lbl" style="margin-bottom:2px">云端同步</div><div id="dashCloudStatus" style="font-size:14px">'+renderCloudStatus()+'</div></div>'+
-        '<div style="color:var(--t3);font-size:14px;font-weight:600;flex-shrink:0">查看 →</div>'+
+
+  let upcomingHtml='';
+  if(upcoming.length){
+    upcomingHtml='<div class="db-card">'+
+      '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.up+'</span>即将到期</span></div>'+
+      upcoming.map(s=>'<div class="db-up-item">'+
+        '<div class="db-up-date">'+relDate(s.date)+'</div>'+
+        '<div class="db-up-title">'+esc(s.title)+'</div>'+
+        (s.priority&&s.priority!=='P2'?'<div class="db-up-pri">'+esc(s.priority)+'</div>':'')+
+      '</div>').join('')+
+    '</div>';
+  }
+
+  let cardHtml='';
+  if(card.show){
+    cardHtml='<div class="db-card '+(card.warn?'db-warn-card':'')+'" onclick="switchTab(\'finance\')">'+
+      '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.cc+'</span>信用卡</span>'+(card.warn?'<span class="db-wtag">临近还款</span>':'')+'</div>'+
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'+
+        '<div class="db-num" style="font-size:22px">'+fmtY(card.owe)+' <span class="db-cap" style="font-size:12px">待还</span></div>'+
+        '<div class="db-cap '+(card.warn?'db-warn':'')+'">'+card.due.slice(5)+' 还款 · 剩 '+card.daysLeft+' 天</div>'+
       '</div>'+
     '</div>';
-  renderTrendChart();refreshCloudStatus();
+  }
+
+  const netStr=(mb.net>=0?'+':'-')+fmtY(Math.abs(mb.net));
+  const finHtml='<div class="db-card tap" onclick="switchTab(\'finance\')">'+
+    '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.fin+'</span>本月财务</span></div>'+
+    '<div class="db-row"><span class="db-rk">收入</span><span class="db-rv">'+fmtY(mb.income)+'</span></div>'+
+    '<div class="db-row"><span class="db-rk">支出</span><span class="db-rv">'+fmtY(mb.expense)+'</span></div>'+
+    '<div class="db-sep"></div>'+
+    '<div class="db-row"><span class="db-rk">本月收支</span><span class="db-rv '+(mb.net>=0?'db-pos':'db-neg')+'">'+netStr+'</span></div>'+
+  '</div>';
+
+  const lifeHtml='<div class="db-card">'+
+    '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.life+'</span>生活进度</span></div>'+
+    '<div class="db-life"><div><div class="lab">习惯</div><div class="val">'+habitsDone+' / '+habits.length+' 完成</div></div><div class="db-pct">'+habitPct+'%</div></div>'+
+    '<div class="db-life" style="margin-top:12px"><div class="lab">时间</div><div class="sub">本周 '+weekPct+'% · 本月 '+monthPct+'% · 今年 '+yearPct+'%</div></div>'+
+  '</div>';
+
+  const todayHtml='<div class="db-card" style="padding-bottom:8px">'+
+    '<div class="db-today-head"><div class="t" style="display:flex;align-items:center;gap:6px"><span class="db-ico">'+I.today+'</span>今天要处理</div><div style="display:flex;align-items:center;gap:8px"><span class="c" id="todayCount">·</span><span class="more" onclick="switchTab(\'tasks\')">查看全部 ›</span></div></div>'+
+    '<div id="todayHandleContent"></div>'+
+  '</div>';
+
+  document.getElementById('indexGrid').innerHTML=
+    '<div class="db-section">'+
+      '<div class="db-2col">'+
+        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.exp+'</span>今日支出</div><div class="db-num">'+expAmtStr+'</div><div class="db-cap">'+expSub+'</div></div>'+
+        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.inc+'</span>今日收入</div><div class="db-num">'+incAmtStr+'</div><div class="db-cap">'+incSub+'</div></div>'+
+      '</div>'+
+      '<div class="db-card tap" style="margin-top:10px" onclick="switchTab(\'finance\')">'+budgetHtml+'</div>'+
+    '</div>'+
+    todayHtml+upcomingHtml+cardHtml+finHtml+lifeHtml;
+
+  renderTodayHandle();
+  const tc=document.getElementById('todayCount');
+  if(tc){
+    const n=(LS(KEYS.schedule)||[]).filter(s=>!s.completed&&s.date===today).length+
+      (LS(KEYS.shopping)||[]).filter(p=>!p.purchased&&p.priority==='高').length+
+      habits.filter(h=>{const rec=h.records&&h.records[today];return !(h.type==='check'?!!rec:(h.type==='count'?rec>=h.target:!!rec));}).length;
+    tc.textContent=n?n+' 项':'✓';
+  }
+  refreshCloudStatus();
 }
-// ===== AI Assistant（Apple Intelligence 风格 · 本地计算摘要，无需后端） =====
+// ===== AI Assistant（Apple Intelligence 风格 · 本地计算摘要，无需后端） =====（Apple Intelligence 风格 · 本地计算摘要，无需后端） =====
 function computeLifeSummary(q){
   q=(q||'').trim();
   const today=tdy();
@@ -3441,7 +3542,7 @@ function updateGreeting(){
   const h=now.getHours();
   const g=h<12?'Good Morning':(h<18?'Good Afternoon':'Good Evening');
   const hi=document.getElementById('lwGreetHi'); if(hi)hi.textContent=g+', Luka';
-  const sub=document.getElementById('lwGreetSub'); if(sub){const wd=['日','一','二','三','四','五','六'];sub.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+wd[now.getDay()]+' · V'+APP_VERSION;}
+  const sub=document.getElementById('lwGreetSub'); if(sub){const wd=['日','一','二','三','四','五','六'];sub.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+wd[now.getDay()];}
 }
 function updateCloudPill(){
   const dot=document.getElementById('lwCloudDot'),txt=document.getElementById('lwCloudText');
