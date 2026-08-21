@@ -85,6 +85,14 @@ a{color:inherit;text-decoration:none}
 .db-warn-card{border-color:var(--wa);background:var(--wal)}
 .db-pct{font-size:14px;font-weight:700;color:var(--t2);font-variant-numeric:tabular-nums}
 .db-pct.db-warn{color:var(--wa)}
+.db-tt{display:flex;align-items:center;gap:6px}
+.db-ico{width:15px;height:15px;flex-shrink:0;color:var(--t2);opacity:.9}
+.db-ico.ac{color:var(--ac)}
+.db-lbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);margin-bottom:6px}
+.db-lbl .db-ico{width:14px;height:14px}
+.db-card.tap{transition:transform .12s ease, box-shadow .12s ease}
+.db-card.tap:active{transform:scale(.985);box-shadow:none}
+
 .db-wtag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--wa);color:#fff;margin-left:6px}
 .db-set{margin-top:8px;font-size:13px;font-weight:600;color:var(--ac);cursor:pointer}
 .db-today-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
@@ -1538,6 +1546,8 @@ function getCreditCardDashboardAlert(){
 }
 function dbMoney0(n){return curLabel('CNY')+Math.round(Math.abs(n)).toLocaleString();}
 function renderIndex(){
+  const I={'exp': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6"/><path d="M5 12l7 7 7-7"/></svg>', 'inc': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v13"/><path d="M19 12l-7-7-7 7"/></svg>', 'budget': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M16 12h.01"/><path d="M21 9v6"/></svg>', 'today': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>', 'up': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>', 'cc': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>', 'fin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M8 20v-6M12 20v-9M16 20v-4"/></svg>', 'life': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 8-6-16-3 8H2"/></svg>'};
+
   const today=tdy();
   const txns=LS(KEYS.txns)||[],habits=LS(KEYS.habits)||[];
   const now=new Date();
@@ -1565,16 +1575,16 @@ function renderIndex(){
 
   let budgetHtml;
   if(!budget.hasBudget){
-    budgetHtml='<div class="db-title">本月预算</div>'+
+    budgetHtml=<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>+
       '<div class="db-cap">尚未设置预算</div>'+
       '<div class="db-set" onclick="switchTab(\'finance\')">设置预算 ›</div>';
   }else if(budget.state==='over'){
-    budgetHtml='<div class="db-title db-danger">⚠ 已超出本月预算</div>'+
+    budgetHtml=<div class="db-title db-danger"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>⚠ 已超出本月预算</span></div>+
       '<div class="db-num db-danger" style="font-size:20px">'+dbMoney0(Math.abs(budget.remain))+'</div>'+
       '<div class="db-pb"><div class="db-pbf over" style="width:100%"></div></div>';
   }else{
     const cls=budget.state==='warn'?'warn':'';
-    budgetHtml='<div class="db-title">本月预算</div>'+
+    budgetHtml=<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.budget+'</span>本月预算</span></div>+
       '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'+
         '<div class="db-num" style="font-size:22px">'+dbMoney0(budget.remain)+' <span class="db-cap" style="font-size:12px">可用</span></div>'+
         '<div class="db-pct '+(budget.state==='warn'?'db-warn':'')+'">'+budget.pct+'%</div>'+
@@ -1585,7 +1595,7 @@ function renderIndex(){
   let upcomingHtml='';
   if(upcoming.length){
     upcomingHtml='<div class="db-card">'+
-      '<div class="db-title">即将到期</div>'+
+      <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.up+'</span>即将到期</span></div>+
       upcoming.map(s=>'<div class="db-up-item">'+
         '<div class="db-up-date">'+relDate(s.date)+'</div>'+
         '<div class="db-up-title">'+esc(s.title)+'</div>'+
@@ -1597,7 +1607,7 @@ function renderIndex(){
   let cardHtml='';
   if(card.show){
     cardHtml='<div class="db-card '+(card.warn?'db-warn-card':'')+'" onclick="switchTab(\'finance\')">'+
-      '<div class="db-title">信用卡'+(card.warn?'<span class="db-wtag">临近还款</span>':'')+'</div>'+
+      '<div class="db-title"><span class="db-tt"><span class="db-ico">'+I.cc+'</span>信用卡</span>'+(card.warn?'<span class="db-wtag">临近还款</span>':'')+'</div>'+
       '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'+
         '<div class="db-num" style="font-size:22px">'+fmtY(card.owe)+' <span class="db-cap" style="font-size:12px">待还</span></div>'+
         '<div class="db-cap '+(card.warn?'db-warn':'')+'">'+card.due.slice(5)+' 还款 · 剩 '+card.daysLeft+' 天</div>'+
@@ -1607,7 +1617,7 @@ function renderIndex(){
 
   const netStr=(mb.net>=0?'+':'-')+fmtY(Math.abs(mb.net));
   const finHtml='<div class="db-card tap" onclick="switchTab(\'finance\')">'+
-    '<div class="db-title">本月财务</div>'+
+    <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.fin+'</span>本月财务</span></div>+
     '<div class="db-row"><span class="db-rk">收入</span><span class="db-rv">'+fmtY(mb.income)+'</span></div>'+
     '<div class="db-row"><span class="db-rk">支出</span><span class="db-rv">'+fmtY(mb.expense)+'</span></div>'+
     '<div class="db-sep"></div>'+
@@ -1615,21 +1625,21 @@ function renderIndex(){
   '</div>';
 
   const lifeHtml='<div class="db-card">'+
-    '<div class="db-title">生活进度</div>'+
+    <div class="db-title"><span class="db-tt"><span class="db-ico">'+I.life+'</span>生活进度</span></div>+
     '<div class="db-life"><div><div class="lab">习惯</div><div class="val">'+habitsDone+' / '+habits.length+' 完成</div></div><div class="db-pct">'+habitPct+'%</div></div>'+
     '<div class="db-life" style="margin-top:12px"><div class="lab">时间</div><div class="sub">本周 '+weekPct+'% · 本月 '+monthPct+'% · 今年 '+yearPct+'%</div></div>'+
   '</div>';
 
   const todayHtml='<div class="db-card" style="padding-bottom:8px">'+
-    '<div class="db-today-head"><div class="t">今天要处理</div><div style="display:flex;align-items:center;gap:8px"><span class="c" id="todayCount">·</span><span class="more" onclick="switchTab(\'tasks\')">查看全部 ›</span></div></div>'+
+    '<div class="db-today-head"><div class="t" style="display:flex;align-items:center;gap:6px"><span class="db-ico">'+I.today+'</span>今天要处理</div><div style="display:flex;align-items:center;gap:8px"><span class="c" id="todayCount">·</span><span class="more" onclick="switchTab(\'tasks\')">查看全部 ›</span></div></div>'+
     '<div id="todayHandleContent"></div>'+
   '</div>';
 
   document.getElementById('indexGrid').innerHTML=
     '<div class="db-section">'+
       '<div class="db-2col">'+
-        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-cap" style="margin-bottom:6px">今日支出</div><div class="db-num">'+expAmtStr+'</div><div class="db-cap">'+expSub+'</div></div>'+
-        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-cap" style="margin-bottom:6px">今日收入</div><div class="db-num">'+incAmtStr+'</div><div class="db-cap">'+incSub+'</div></div>'+
+        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.exp+'</span>今日支出</div><div class="db-num">'+expAmtStr+'</div><div class="db-cap">'+expSub+'</div></div>'+
+        '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.inc+'</span>今日收入</div><div class="db-num">'+incAmtStr+'</div><div class="db-cap">'+incSub+'</div></div>'+
       '</div>'+
       '<div class="db-card tap" style="margin-top:10px" onclick="switchTab(\'finance\')">'+budgetHtml+'</div>'+
     '</div>'+
