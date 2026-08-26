@@ -1639,15 +1639,21 @@ function renderIndex(){
     '<div id="todayHandleContent"></div>'+
   '</div>';
 
+  /* 两列网格布局：避免首页变成一长条单列 */
+  const row3=(upcomingHtml&&cardHtml)?'<div class="db-2col" style="margin-top:10px">'+upcomingHtml+cardHtml+'</div>':upcomingHtml+cardHtml;
   document.getElementById('indexGrid').innerHTML=
     '<div class="db-section">'+
       '<div class="db-2col">'+
         '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.exp+'</span>今日支出</div><div class="db-num">'+expAmtStr+'</div><div class="db-cap">'+expSub+'</div></div>'+
         '<div class="db-card tap" onclick="switchTab(\'finance\')"><div class="db-lbl"><span class="db-ico ac">'+I.inc+'</span>今日收入</div><div class="db-num">'+incAmtStr+'</div><div class="db-cap">'+incSub+'</div></div>'+
       '</div>'+
-      '<div class="db-card tap" style="margin-top:10px" onclick="switchTab(\'finance\')">'+budgetHtml+'</div>'+
-    '</div>'+
-    todayHtml+upcomingHtml+cardHtml+finHtml+lifeHtml;
+      '<div class="db-2col" style="margin-top:10px">'+
+        '<div class="db-card tap" onclick="switchTab(\'finance\')">'+budgetHtml+'</div>'+
+        todayHtml+
+      '</div>'+
+      row3+
+      '<div class="db-2col" style="margin-top:10px">'+finHtml+lifeHtml+'</div>'+
+    '</div>';
 
   renderTodayHandle();
   const tc=document.getElementById('todayCount');
