@@ -1,2 +1,4 @@
 .DS_Store
 *.log
+android-release-key.jks
+keystore-pass.txt

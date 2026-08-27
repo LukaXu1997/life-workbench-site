@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.luka.lifeworkbench",
+    "sha256_cert_fingerprints": ["14:80:48:56:2D:94:25:7D:42:C6:89:9C:FB:04:0B:BE:BE:F1:9E:D4:F7:F1:55:24:41:78:52:66:E0:DC:BC:EB"]
+  }
+}]
