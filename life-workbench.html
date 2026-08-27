@@ -3472,6 +3472,8 @@ function processRecurring(){
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   document.body.classList.toggle('darkmode',t==='dark');
+  const m=document.querySelector('meta[name=theme-color]');
+  if(m)m.setAttribute('content', t==='dark'?'#0D0D0E':'#fafafa');
   LS(KEYS.theme,t);
 }
 function toggleTheme(){
